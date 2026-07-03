@@ -1,18 +1,19 @@
 import { StagingLaneObject } from './types';
 
-// In a real app, this base URL might come from an environment variable.
-const API_BASE_URL = 'http://localhost:8000/api/ontology';
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+    ? '/api' // Azure SWA will handle this routing in production
+    : 'http://localhost:7071/api'; // Local Azure Functions Emulator
 
 export const ontologyClient = {
     getStagingLanes: async (): Promise<StagingLaneObject[]> => {
-        const response = await fetch(`${API_BASE_URL}/staging-lanes`);
+        const response = await fetch(`${API_BASE_URL}/ontology/staging-lanes`);
         if (!response.ok) throw new Error('Failed to fetch staging lanes');
         const data = await response.json();
         return data.objects;
     },
 
     executeAction: async (actionType: string, params: object): Promise<void> => {
-        const response = await fetch(`${API_BASE_URL}/actions`, {
+        const response = await fetch(`${API_BASE_URL}/ontology/actions`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

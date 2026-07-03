@@ -1,7 +1,8 @@
 import { actionRegistry } from '../actions';
+import { InvocationContext } from '@azure/functions';
 
-export async function executeActionHandler(reqBody: any) {
-    const { actionType, params } = reqBody;
+export async function executeActionHandler(payload: any, context?: InvocationContext) {
+    const { actionType, params } = payload;
 
     const matchedAction = actionRegistry[actionType];
     if (!matchedAction) {

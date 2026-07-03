@@ -1,13 +1,18 @@
 {
+  "$schema": "https://turbo.build/schema.json",
   "tasks": {
+    "build": {
+      "outputs": ["dist/**"],
+      "inputs": ["src/**", "tsconfig.json", "vite.config.ts"],
+      "dependsOn": ["^build"]
+    },
     "test": {
       "outputs": ["coverage/**"],
-      "cache": false
+      "inputs": ["src/**", "__tests__/**", "tsconfig.json"],
+      "dependsOn": ["^build"] 
     },
-    "build": {
-      "outputs": ["dist/**", ".next/**"],
-      "inputs": ["src/**", "tsconfig.json"],
-      "dependsOn": ["^build"]
+    "typecheck": {
+      "dependsOn": ["^typecheck"]
     },
     "deploy": {
       "dependsOn": ["build", "test"]
