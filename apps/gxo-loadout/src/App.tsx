@@ -1,7 +1,7 @@
-import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getDeviceConfig } from './lib/deviceConfig';
-import { dbGetPendingSyncCount, dbGetUnuploadedPhotoCount } from './services/db';
+import { dbGetPendingSyncCount, dbGetUnuploadedPhotoCount } from '@gxo/semantic';
 import { isAdminAuthenticated } from './services/adminAuth';
 
 
@@ -23,7 +23,7 @@ import { InvestigationRoute } from './routes/InvestigationRoute';
 import { CaptureReturnsStagingRoute } from './routes/CaptureReturnsStagingRoute';
 import { StagingLanesRoute } from './routes/StagingLanesRoute';
 
-import { startBackgroundSync } from './services/sync';
+import { startBackgroundSync } from '@gxo/semantic';
 
 export default function App() {
   useEffect(() => {
@@ -76,7 +76,7 @@ function AdminGate({ children }: { children: React.ReactNode }) {
 function Shell({ children }: { children: React.ReactNode }) {
   const config = getDeviceConfig();
   const location = useLocation();
-  const navigate = useNavigate();
+
   const [sync, setSync] = useState({ pending: 0, photos: 0 });
   const [online, setOnline] = useState(navigator.onLine);
 

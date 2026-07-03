@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import type { Inspection } from '../types/inspection';
+import type { Inspection } from '@gxo/semantic';
 
 interface Props {
   inspection: Inspection;

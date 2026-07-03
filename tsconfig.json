@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
-      "@gxo/semantic": ["packages/semantic/src"],
-      "@gxo/semantic/*": ["packages/semantic/src/*"],
-      "@gxo/shared": ["packages/shared/src"],
-      "@gxo/shared/*": ["packages/shared/src/*"]
+      "@gxo/semantic": ["./packages/semantic/src"],
+      "@gxo/semantic/*": ["./packages/semantic/src/*"],
+      "@gxo/shared": ["./packages/shared/src"],
+      "@gxo/shared/*": ["./packages/shared/src/*"]
     },
     "target": "ES2020",
     "module": "ESNext",
@@ -13,6 +12,7 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "jsx": "react-jsx"
   }
 }

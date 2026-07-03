@@ -3,7 +3,7 @@
 // Per-site, admin-editable list. Starts empty — managers must add at least
 // one inspector per site before any load can be started.
 
-import type { Inspector } from '../types/inspection';
+import type { Inspector } from '@gxo/semantic';
 
 const KEY = 'loadout.inspectors';
 

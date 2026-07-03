@@ -1,12 +1,12 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { dbGetInspection } from '../services/db';
-import { useInspection } from '../hooks/useInspection';
-import { SlotPhotoCapture } from '../components/PhotoCapture';
-import { SuggestableField } from '../components/SuggestableField';
-import { QualityFlagButton } from '../components/QualityFlagButton';
-import type { Inspection, Suggestable, BatchSection } from '../types/inspection';
-import { getRequiredPhotoSlots, PALLET_TYPES } from '../types/inspection';
+import { dbGetInspection } from '@gxo/semantic';
+import { useInspection } from '@gxo/semantic';
+import { SlotPhotoCapture } from '@gxo/semantic';
+import { SuggestableField } from '@gxo/semantic';
+import { QualityFlagButton } from '@gxo/semantic';
+import type { Inspection, BatchSection } from '@gxo/semantic';
+import { getRequiredPhotoSlots, PALLET_TYPES } from '@gxo/semantic';
 
 const FINDINGS_OPTIONS = [
   'Picked Short',

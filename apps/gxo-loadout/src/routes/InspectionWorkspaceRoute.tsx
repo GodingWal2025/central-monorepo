@@ -1,11 +1,11 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { dbGetInspection, dbArchiveInspection } from '../services/db';
-import { useInspection } from '../hooks/useInspection';
-import type { Inspection, PalletType, Delivery, PalletInspection } from '../types/inspection';
-import { PALLET_TYPES } from '../types/inspection';
+import { dbGetInspection, dbArchiveInspection } from '@gxo/semantic';
+import { useInspection } from '@gxo/semantic';
+import type { Inspection, PalletType, Delivery, PalletInspection } from '@gxo/semantic';
+import { PALLET_TYPES } from '@gxo/semantic';
 import { RunningTallyHeader } from '../components/RunningTallyHeader';
-import { InspectorPicker } from '../components/InspectorPicker';
+import { InspectorPicker } from '@gxo/semantic';
 import { InspectionProgressModal } from '../components/InspectionProgressModal';
 
 export function InspectionWorkspaceRoute() {

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { dbGetInspection, dbSavePhotoBlob, dbSaveInspection } from '../services/db';
-import { useCameraCapture } from '../hooks/useCameraCapture';
+import { dbGetInspection, dbSavePhotoBlob, dbSaveInspection } from '@gxo/semantic';
+import { useCameraCapture } from '@gxo/semantic';
 
-import { checkImageQuality, type QualityIssue } from '../services/imageQuality';
-import { ImageQualityModal } from '../components/ImageQualityModal';
-import type { Inspection, InspectionPhoto, Suggestable } from '../types/inspection';
+import { checkImageQuality, type QualityIssue } from '@gxo/semantic';
+import { ImageQualityModal } from '@gxo/semantic';
+import type { Inspection, InspectionPhoto } from '@gxo/semantic';
 
 export function CaptureReturnsBOLRoute() {
   const { id } = useParams<{ id: string }>();
@@ -33,10 +33,10 @@ export function CaptureReturnsBOLRoute() {
       setPending({ blob, previewUrl, issues: quality.issues });
       return;
     }
-    await processReturnsBOL(blob, false);
+    await processReturnsBOL(blob);
   });
 
-  async function processReturnsBOL(blob: Blob, wasFlagged: boolean) {
+  async function processReturnsBOL(blob: Blob) {
     if (!inspection) return;
 
     const bitmap = await createImageBitmap(blob);
@@ -96,7 +96,7 @@ export function CaptureReturnsBOLRoute() {
     const { blob, previewUrl } = pending;
     URL.revokeObjectURL(previewUrl);
     setPending(null);
-    await processReturnsBOL(blob, true);
+    await processReturnsBOL(blob);
   };
 
   const skipToVerify = async () => {

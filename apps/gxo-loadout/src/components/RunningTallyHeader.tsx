@@ -1,4 +1,4 @@
-import type { Picklist } from '../types/inspection';
+import type { Picklist } from '@gxo/semantic';
 
 interface Props {
   picklist: Picklist;

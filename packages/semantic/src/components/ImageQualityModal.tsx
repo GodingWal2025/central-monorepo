@@ -1,4 +1,4 @@
-import type { QualityIssue } from '../services/imageQuality';
+import type { QualityIssue } from '../camera/imageQuality';
 
 interface Props {
   previewUrl: string;

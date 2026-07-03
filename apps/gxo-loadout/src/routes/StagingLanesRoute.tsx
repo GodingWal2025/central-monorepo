@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getDeviceConfig } from '../lib/deviceConfig';
-import { dbListInProgressForSite } from '../services/db';
-import type { Inspection } from '../types/inspection';
+import { dbListInProgressForSite } from '@gxo/semantic';
+import type { Inspection } from '@gxo/semantic';
 import { ontologyClient } from '@gxo/semantic';
-import { StagingLanesMap } from '../components/StagingLanesMap';
+import { StagingLanesMap } from '@gxo/semantic';
 import { LANE_STATUS } from '@gxo/semantic/src/types/ontology';
 
 export function AssignLaneComponent({ loadId, laneId }: { loadId: string, laneId: string }) {

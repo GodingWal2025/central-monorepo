@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { dbGetInspection, dbSavePhotoBlob, dbSaveInspection } from '../services/db';
-import { useCameraCapture } from '../hooks/useCameraCapture';
+import { dbGetInspection, dbSavePhotoBlob, dbSaveInspection } from '@gxo/semantic';
+import { useCameraCapture } from '@gxo/semantic';
 
-import { checkImageQuality, type QualityIssue } from '../services/imageQuality';
-import { ImageQualityModal } from '../components/ImageQualityModal';
-import type { Inspection, InspectionPhoto, Suggestable } from '../types/inspection';
+import { checkImageQuality, type QualityIssue } from '@gxo/semantic';
+import { ImageQualityModal } from '@gxo/semantic';
+import type { Inspection, InspectionPhoto } from '@gxo/semantic';
 
 export function CapturePicklistRoute() {
   const { id } = useParams<{ id: string }>();
@@ -33,10 +33,10 @@ export function CapturePicklistRoute() {
       setPending({ blob, previewUrl, issues: quality.issues });
       return;
     }
-    await processPicklist(blob, false);
+    await processPicklist(blob);
   });
 
-  async function processPicklist(blob: Blob, wasFlagged: boolean) {
+  async function processPicklist(blob: Blob) {
     if (!inspection) return;
 
     const bitmap = await createImageBitmap(blob);
@@ -85,7 +85,7 @@ export function CapturePicklistRoute() {
     const { blob, previewUrl } = pending;
     URL.revokeObjectURL(previewUrl);
     setPending(null);
-    await processPicklist(blob, true);
+    await processPicklist(blob);
   };
 
   const skipToVerify = async () => {

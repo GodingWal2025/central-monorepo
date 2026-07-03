@@ -11,7 +11,7 @@
 //   trainingLabels   - ground-truth bounding box + text labels for OCR training (v2+)
 
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import type { Inspection, InspectionPhoto } from '../types/inspection';
+import type { Inspection } from '../types/inspection';
 
 interface InspectionDB extends DBSchema {
   inspections: {

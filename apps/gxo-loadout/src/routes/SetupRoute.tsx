@@ -2,7 +2,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { setDeviceConfig } from '../lib/deviceConfig';
 import { listActiveSites, addSite } from '../services/sites';
-import type { Site } from '../types/inspection';
+import type { Site } from '@gxo/semantic';
 
 export function SetupRoute() {
   const navigate = useNavigate();

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { dbGetInspection } from '../services/db';
-import { useInspection } from '../hooks/useInspection';
-import { InspectorPicker } from '../components/InspectorPicker';
-import { MultiPhotoCapture } from '../components/PhotoCapture';
-import type { Inspection } from '../types/inspection';
+import { dbGetInspection } from '@gxo/semantic';
+import { useInspection } from '@gxo/semantic';
+import { InspectorPicker } from '@gxo/semantic';
+import { MultiPhotoCapture } from '@gxo/semantic';
+import type { Inspection } from '@gxo/semantic';
 
 export function ReviewAndCompleteRoute() {
   const { id } = useParams<{ id: string }>();

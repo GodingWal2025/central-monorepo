@@ -5,12 +5,12 @@ import type {
   PhotoMetadata,
   QualityFlag,
 } from '../types/inspection';
-import { useCameraCapture } from '../hooks/useCameraCapture';
+import { useCameraCapture } from './useCameraCapture';
 import { dbSavePhotoBlob } from '../services/db';
-import { compressPhoto } from '../services/compressPhoto';
-import { checkImageQuality, type QualityIssue } from '../services/imageQuality';
-import { QualityFlagButton } from './QualityFlagButton';
-import { ImageQualityModal } from './ImageQualityModal';
+import { compressPhoto } from './compressPhoto';
+import { checkImageQuality, type QualityIssue } from './imageQuality';
+import { QualityFlagButton } from '../components/QualityFlagButton';
+import { ImageQualityModal } from '../components/ImageQualityModal';
 
 // ---- Pending capture (image quality review) ----
 

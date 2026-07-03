@@ -67,3 +67,8 @@ export const LANE_STATUS = {
     RESERVED: 'RESERVED'
 } as const;
 
+export interface AssignLaneActionParams {
+    laneId: string;
+    loadId: string;
+    status: string;
+}

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { dbGetInspection, dbSavePhotoBlob, dbSaveInspection } from '../services/db';
-import { useCameraCapture } from '../hooks/useCameraCapture';
-import { checkImageQuality, type QualityIssue } from '../services/imageQuality';
-import { ImageQualityModal } from '../components/ImageQualityModal';
-import type { Inspection, InspectionPhoto } from '../types/inspection';
+import { dbGetInspection, dbSavePhotoBlob, dbSaveInspection } from '@gxo/semantic';
+import { useCameraCapture } from '@gxo/semantic';
+import { checkImageQuality, type QualityIssue } from '@gxo/semantic';
+import { ImageQualityModal } from '@gxo/semantic';
+import type { Inspection, InspectionPhoto } from '@gxo/semantic';
 
 export function CaptureReturnsStagingRoute() {
   const { id } = useParams<{ id: string }>();
@@ -32,10 +32,10 @@ export function CaptureReturnsStagingRoute() {
       setPending({ blob, previewUrl, issues: quality.issues });
       return;
     }
-    await processStagingPhoto(blob, false);
+    await processStagingPhoto(blob);
   });
 
-  async function processStagingPhoto(blob: Blob, wasFlagged: boolean) {
+  async function processStagingPhoto(blob: Blob) {
     if (!inspection) return;
 
     const bitmap = await createImageBitmap(blob);
@@ -97,7 +97,7 @@ export function CaptureReturnsStagingRoute() {
     const { blob, previewUrl } = pending;
     URL.revokeObjectURL(previewUrl);
     setPending(null);
-    await processStagingPhoto(blob, true);
+    await processStagingPhoto(blob);
   };
 
   const continueToVerify = async () => {

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getDeviceConfig } from '../lib/deviceConfig';
-import { dbListInProgressForSite, dbListCompletedForSite } from '../services/db';
-import type { Inspection } from '../types/inspection';
+import { dbListInProgressForSite, dbListCompletedForSite } from '@gxo/semantic';
+import type { Inspection } from '@gxo/semantic';
 import { InspectionListCard } from '../components/InspectionListCard';
 
 type Tab = 'inProgress' | 'completed';

@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { listActiveSites } from '../services/sites';
 import { getDeviceConfig } from '../lib/deviceConfig';
-import { dbListAllInspections } from '../services/db';
-import type { Site } from '../types/inspection';
+import { dbListAllInspections } from '@gxo/semantic';
+
 
 export function InvestigationRoute() {
   const deviceConfig = getDeviceConfig();

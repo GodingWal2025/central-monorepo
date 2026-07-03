@@ -3,7 +3,7 @@ import {
   readExifOrientation,
   setOrientationTransform,
   uprightSizeForOrientation,
-} from '../services/exifOrientation.ts';
+} from './exifOrientation';
 
 /**
  * Cross-device photo capture.

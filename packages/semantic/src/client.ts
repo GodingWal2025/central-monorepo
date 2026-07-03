@@ -1,4 +1,4 @@
-import { StagingLaneObject } from './types';
+import { StagingLaneObject } from './types/ontology';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
     ? '/api' // Azure SWA will handle this routing in production

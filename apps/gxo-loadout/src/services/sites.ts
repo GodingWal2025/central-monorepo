@@ -2,7 +2,7 @@
 //
 // Starts empty after install. Admin adds sites via the Sites tab.
 
-import type { Site } from '../types/inspection';
+import type { Site } from '@gxo/semantic';
 
 const KEY = 'loadout.sites';
 

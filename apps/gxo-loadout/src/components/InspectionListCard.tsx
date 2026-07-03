@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import type { Inspection } from '../types/inspection';
-import { INSPECTION_TYPE_LABELS } from '../types/inspection';
+import type { Inspection } from '@gxo/semantic';
+import { INSPECTION_TYPE_LABELS } from '@gxo/semantic';
 
 interface Props {
   inspection: Inspection;

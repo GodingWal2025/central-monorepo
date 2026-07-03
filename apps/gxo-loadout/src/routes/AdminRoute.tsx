@@ -12,7 +12,7 @@ import {
   addInspector,
   listAllInspectorsForSite,
   updateInspector,
-} from '../services/inspectors';
+} from '@gxo/semantic';
 import {
   listAllStagingLocations,
   addStagingLocation,
@@ -29,9 +29,9 @@ import {
 import {
   dbListAllInspections,
   dbHardDeleteInspection,
-} from '../services/db';
+} from '@gxo/semantic';
 import { wipeAllData } from '../services/appReset';
-import type { Inspector, Site, Inspection } from '../types/inspection';
+import type { Inspector, Site } from '@gxo/semantic';
 
 type Tab = 'inspectors' | 'sites' | 'staging' | 'security' | 'reports' | 'diagnostics';
 

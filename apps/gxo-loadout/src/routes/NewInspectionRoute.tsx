@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getDeviceConfig } from '../lib/deviceConfig';
-import { InspectorPicker } from '../components/InspectorPicker';
-import { emptyInspection } from '../hooks/useInspection';
-import { dbSaveInspection } from '../services/db';
+import { InspectorPicker } from '@gxo/semantic';
+import { emptyInspection } from '@gxo/semantic';
+import { dbSaveInspection } from '@gxo/semantic';
 import { listActiveStagingLocations, type StagingLocation } from '../services/stagingLocations';
-import { listInspectorsForSite } from '../services/inspectors';
-import type { InspectionType } from '../types/inspection';
-import { INSPECTION_TYPE_LABELS, INSPECTION_TYPE_DESCRIPTIONS } from '../types/inspection';
+import { listInspectorsForSite } from '@gxo/semantic';
+import type { InspectionType } from '@gxo/semantic';
+import { INSPECTION_TYPE_LABELS, INSPECTION_TYPE_DESCRIPTIONS } from '@gxo/semantic';
 
 function SearchableMultiSelect({
   label,

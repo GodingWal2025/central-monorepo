@@ -1,5 +1,6 @@
+/// <reference types="node" />
 // Tests for EXIF orientation parsing + canvas-transform math oracle.
-// Run with `npm test`.
+/// <reference types="node" />
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -7,7 +8,7 @@ import {
   mapPointThroughOrientation,
   parseExifOrientationFromBuffer,
   uprightSizeForOrientation,
-} from './exifOrientation.ts';
+} from './exifOrientation';
 
 // ============================================================
 // Synthetic JPEG byte stream with EXIF Orientation tag

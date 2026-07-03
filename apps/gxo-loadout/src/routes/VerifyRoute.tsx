@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { dbGetInspection } from '../services/db';
-import { useInspection } from '../hooks/useInspection';
-import type { Inspection, Suggestable } from '../types/inspection';
-import { SuggestableField } from '../components/SuggestableField';
+import { dbGetInspection } from '@gxo/semantic';
+import { useInspection } from '@gxo/semantic';
+import type { Inspection, Suggestable } from '@gxo/semantic';
+import { SuggestableField } from '@gxo/semantic';
 
 export function VerifyRoute() {
   const { id } = useParams<{ id: string }>();
