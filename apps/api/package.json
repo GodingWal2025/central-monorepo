@@ -1,15 +1,19 @@
 {
-  "name": "@gxo/backend",
+  "name": "@gxo/api",
   "version": "0.1.0",
   "dependencies": {
+    "@azure/functions": "^1.x",
     "@gxo/semantic": "*",
     "@gxo/shared": "*",
-    "@azure/functions": "^1.x",
-    "@pnp/sp": "^3.x"
+    "@pnp/sp": "^3.x",
+    "@prisma/client": "^5.22.0"
   },
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
     "start": "func start"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0"
   }
 }

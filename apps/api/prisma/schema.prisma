@@ -61,6 +61,7 @@ model Pallet {
   load          Load?        @relation(fields: [loadId], references: [id])
   stagingLaneId String?
   stagingLane   StagingLane? @relation(fields: [stagingLaneId], references: [id])
+  inspections   Inspection[]
 }
 
 model Inspection {
@@ -74,4 +75,6 @@ model Inspection {
   // Relations
   loadId        String
   load          Load     @relation(fields: [loadId], references: [id])
+  palletId      String?
+  pallet        Pallet?  @relation(fields: [palletId], references: [id])
 }

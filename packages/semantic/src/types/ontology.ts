@@ -58,3 +58,12 @@ export interface InspectionObject {
         loadId: string;
     };
 }
+
+
+export const LANE_STATUS = {
+    EMPTY: 'EMPTY',
+    STAGED: 'STAGED',
+    BLOCKED: 'BLOCKED',
+    RESERVED: 'RESERVED'
+} as const;
+

@@ -8,3 +8,7 @@ export * from './rules/inspectionCompletion';
 export * from './rules/handoffValidation';
 export * from './state/inspectionMachine';
 export * from './state/palletMachine';
+
+export * from './types/ontology';
+export * from './client';
+
