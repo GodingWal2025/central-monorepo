@@ -1,0 +1,74 @@
+central-monorepo/
+├── packages/
+│   ├── semantic/                    # ← SHARED DOMAIN LAYER
+│   │   ├── src/
+│   │   │   ├── types/
+│   │   │   │   ├── inspection.ts
+│   │   │   │   ├── load.ts
+│   │   │   │   └── site.ts
+│   │   │   ├── rules/
+│   │   │   │   ├── batchCodeMatching.ts
+│   │   │   │   ├── photoQuality.ts
+│   │   │   │   ├── stopStickerValidation.ts
+│   │   │   │   ├── inspectionCompletion.ts
+│   │   │   │   └── handoffValidation.ts
+│   │   │   ├── state/
+│   │   │   │   ├── inspectionMachine.ts
+│   │   │   │   └── palletMachine.ts
+│   │   │   └── index.ts
+│   │   ├── __tests__/
+│   │   │   ├── batchCodeMatching.test.ts
+│   │   │   ├── photoQuality.test.ts
+│   │   │   └── ...
+│   │   ├── package.json
+│   │   └── tsconfig.json
+│   │
+│   ├── web/                         # ← REACT WEB APP (warehouse desktop)
+│   │   ├── src/
+│   │   │   ├── kinetic/
+│   │   │   │   ├── indexedDB/
+│   │   │   │   ├── sharepoint/
+│   │   │   │   └── azure/
+│   │   │   ├── dynamic/
+│   │   │   │   ├── hooks/
+│   │   │   │   ├── components/
+│   │   │   │   └── workflows/
+│   │   │   └── App.tsx
+│   │   ├── package.json
+│   │   └── tsconfig.json
+│   │
+│   │
+│   ├── backend/                     # ← AZURE FUNCTIONS (kinetic sync orchestrator)
+│   │   ├── src/
+│   │   │   ├── functions/
+│   │   │   │   ├── startInspection/
+│   │   │   │   ├── submitInspection/
+│   │   │   │   ├── syncToSharePoint/
+│   │   │   │   └── uploadPhoto/
+│   │   │   ├── kinetic/
+│   │   │   │   ├── sharepoint.ts     # SharePoint SDK client
+│   │   │   │   ├── blob.ts           # Blob Storage client
+│   │   │   │   └── cosmosdb.ts       # Sync state ledger (optional)
+│   │   │   └── index.ts
+│   │   ├── package.json
+│   │   └── tsconfig.json
+│   │
+│   └── shared/                      # ← UTILITIES (logging, error handling, env)
+│       ├── src/
+│       │   ├── logger.ts
+│       │   ├── errors.ts
+│       │   ├── config.ts
+│       │   └── utils.ts
+│       ├── package.json
+│       └── tsconfig.json
+│
+├── tsconfig.json                    # ← ROOT TSCONFIG (references all packages)
+├── package.json                     # ← ROOT PACKAGE.JSON (yarn workspaces / pnpm)
+├── .github/
+│   └── workflows/
+│       ├── test-semantic.yml        # ← Test semantic rules on every PR
+│       ├── build-web.yml
+│       ├── build-mobile.yml
+│       └── deploy-backend.yml
+├── README.md
+└── turbo.json                       # ← BUILD ORCHESTRATION (optional but recommended)

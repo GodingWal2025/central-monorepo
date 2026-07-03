@@ -1,0 +1,50 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test-semantic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - run: npm install
+      - run: npm run -w @gxo/semantic test
+
+  test-web:
+    runs-on: ubuntu-latest
+    needs: test-semantic
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - run: npm install
+      - run: npm run -w @gxo/web test
+
+  test-backend:
+    runs-on: ubuntu-latest
+    needs: test-semantic
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - run: npm install
+      - run: npm run -w @gxo/backend test
+
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: [test-web, test-backend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - run: npm install
+      - run: npm run -w @gxo/web build
+      - run: npm run -w @gxo/backend build
+      - name: Deploy Web to Static Web App
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          app_location: packages/gxo-loadout/dist
+      - name: Deploy Backend to Functions
+        run: func azure functionapp publish gxo-loadout-backend
+

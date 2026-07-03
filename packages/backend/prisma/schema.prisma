@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Site {
+  id           String        @id @default(cuid())
+  name         String
+  timezone     String        @default("UTC")
+  address      String?
+  stagingLanes StagingLane[]
+  loads        Load[]
+}
+
+model StagingLane {
+  id            String    @id @default(cuid())
+  name          String
+  status        String    @default("EMPTY") // EMPTY, STAGED, BLOCKED, RESERVED
+  x             Int
+  y             Int
+  width         Int
+  length        Int
+  zoneCode      String
+  
+  // Relations
+  siteId        String?
+  site          Site?     @relation(fields: [siteId], references: [id])
+  currentLoadId String?   @unique
+  currentLoad   Load?     @relation("LaneToLoad", fields: [currentLoadId], references: [id])
+  pallets       Pallet[]
+}
+
+model Load {
+  id                  String       @id @default(cuid())
+  carrier             String
+  destination         String?
+  expectedPalletCount Int          @default(0)
+  status              String       @default("PENDING") // PENDING, STAGED, LOADING, DISPATCHED
+  
+  // Relations
+  siteId              String?
+  site                Site?        @relation(fields: [siteId], references: [id])
+  stagingLane         StagingLane? @relation("LaneToLoad")
+  pallets             Pallet[]
+  inspections         Inspection[]
+}
+
+model Pallet {
+  id            String       @id @default(cuid())
+  barcode       String       @unique
+  productType   String?
+  packagingType String?      // 40x40, 48x40, seedpak
+  isFlagged     Boolean      @default(false)
+  
+  // Relations
+  loadId        String?
+  load          Load?        @relation(fields: [loadId], references: [id])
+  stagingLaneId String?
+  stagingLane   StagingLane? @relation(fields: [stagingLaneId], references: [id])
+}
+
+model Inspection {
+  id            String   @id @default(cuid())
+  inspectorName String
+  timestamp     DateTime @default(now())
+  photosJson    String?  // JSON string array of URLs
+  notes         String?
+  result        String   // PASSED, FAILED_WRONG_LOCATION, etc.
+  
+  // Relations
+  loadId        String
+  load          Load     @relation(fields: [loadId], references: [id])
+}

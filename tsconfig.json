@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@gxo/semantic": ["packages/semantic/src"],
+      "@gxo/semantic/*": ["packages/semantic/src/*"],
+      "@gxo/shared": ["packages/shared/src"],
+      "@gxo/shared/*": ["packages/shared/src/*"]
+    },
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}

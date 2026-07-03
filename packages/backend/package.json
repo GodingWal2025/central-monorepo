@@ -1,0 +1,15 @@
+{
+  "name": "@gxo/backend",
+  "version": "0.1.0",
+  "dependencies": {
+    "@gxo/semantic": "*",
+    "@gxo/shared": "*",
+    "@azure/functions": "^1.x",
+    "@pnp/sp": "^3.x"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "start": "func start"
+  }
+}
