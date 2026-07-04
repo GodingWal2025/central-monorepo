@@ -90,7 +90,7 @@ export async function dbSaveInspection(inspection: Inspection): Promise<void> {
   const db = await getDB();
   await db.put('inspections', inspection);
   await dbEnqueueSync({
-    type: inspection.status === 'Complete' || inspection.status === 'Flagged' ? 'inspection-complete' : 'inspection-save',
+    type: inspection.status === 'COMPLETED' || inspection.status === 'FLAGGED' ? 'inspection-complete' : 'inspection-save',
     inspectionId: inspection.id
   });
 }
@@ -113,12 +113,12 @@ export async function dbListInspectionsForSite(siteId: string): Promise<Inspecti
 
 export async function dbListInProgressForSite(siteId: string): Promise<Inspection[]> {
   const all = await dbListInspectionsForSite(siteId);
-  return all.filter((i) => i.status === 'Draft' || i.status === 'InProgress');
+  return all.filter((i) => i.status === 'PENDING' || i.status === 'IN_PROGRESS');
 }
 
 export async function dbListCompletedForSite(siteId: string): Promise<Inspection[]> {
   const all = await dbListInspectionsForSite(siteId);
-  return all.filter((i) => i.status === 'Complete' || i.status === 'Flagged');
+  return all.filter((i) => i.status === 'COMPLETED' || i.status === 'FLAGGED');
 }
 
 export async function dbHardDeleteInspection(id: string): Promise<void> {

@@ -236,7 +236,7 @@ export interface LineItemDiscrepancy {
 // Inspection (parent record)
 // ============================================================
 
-export type InspectionStatus = 'Draft' | 'InProgress' | 'Complete' | 'Flagged';
+export type InspectionStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FLAGGED' | 'CANCELLED';
 
 export interface Inspection {
   id: string;

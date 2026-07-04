@@ -1,4 +1,5 @@
 import { generateId } from '../utils/uuid';
+import { transitionInspection } from '../state/inspectionMachine';
 import { useEffect, useReducer } from 'react';
 import type {
   Inspection,
@@ -23,7 +24,7 @@ export function emptyInspection(siteId: string, type: InspectionType = 'outbound
     id: generateId(),
     type,
     siteId,
-    status: 'Draft',
+    status: 'PENDING',
     startedAt: new Date().toISOString(),
     lastEditedAt: new Date().toISOString(),
     handoffLog: [],
@@ -329,7 +330,7 @@ function reducer(state: Inspection, action: Action): Inspection {
     case 'VERIFY_RETURNS_BOL':
       next = {
         ...state,
-        status: 'InProgress',
+        status: transitionInspection(state.status, 'START'),
         returnsBol: {
           ...state.returnsBol!,
           verifiedAt: new Date().toISOString(),
@@ -345,7 +346,7 @@ function reducer(state: Inspection, action: Action): Inspection {
     case 'VERIFY_PICKLIST':
       next = {
         ...state,
-        status: 'InProgress',
+        status: transitionInspection(state.status, 'START'),
         picklist: {
           ...state.picklist,
           verifiedAt: new Date().toISOString(),
@@ -488,7 +489,7 @@ function reducer(state: Inspection, action: Action): Inspection {
       const hasFlags = state.flaggedItemsCount > 0;
       next = {
         ...state,
-        status: hasFlags ? 'Flagged' : 'Complete',
+        status: hasFlags ? 'FLAGGED' : transitionInspection(state.status, 'COMPLETE'),
         completedAt: new Date().toISOString(),
       };
       break;
