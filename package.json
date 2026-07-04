@@ -1,26 +1,31 @@
 {
-    "name":  "central",
-    "version":  "1.0.0",
+    "name": "central",
+    "version": "1.0.0",
     "packageManager": "npm@10.8.2",
-    "description":  "",
-    "main":  "index.js",
-    "scripts":  {
-                    "test":  "echo \"Error: no test specified\" \u0026\u0026 exit 1",
-                    "dev":  "turbo run dev",
-                    "build":  "turbo run build"
-                },
-    "keywords":  [
-
-                 ],
-    "author":  "",
-    "license":  "ISC",
-    "type":  "commonjs",
-    "devDependencies":  {
-        "turbo":  "^2.10.2",
-        "typescript":  "^6.0.3",
-        "vitest":  "^4.1.9"
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "dev": "turbo run dev",
+        "build": "turbo run build"
     },
-    "workspaces":  [
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "commonjs",
+    "devDependencies": {
+        "@types/react": "^18.3.31",
+        "@types/react-dom": "^18.3.7",
+        "rollup": "^4.62.2",
+        "turbo": "^2.10.3",
+        "typescript": "^6.0.3",
+        "vitest": "^4.1.9"
+    },
+    "overrides": {
+        "@types/react": "^18.3.31",
+        "@types/react-dom": "^18.3.7"
+    },
+    "workspaces": [
         "apps/*",
         "packages/*"
     ]

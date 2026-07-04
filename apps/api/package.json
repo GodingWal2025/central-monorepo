@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "dependencies": {
     "@azure/functions": "^4.0.0",
+    "@azure/functions-extensions-base": "^0.3.0",
     "@gxo/semantic": "*",
     "@gxo/shared": "*",
     "@pnp/sp": "^3.x",

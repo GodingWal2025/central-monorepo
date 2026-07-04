@@ -4,7 +4,7 @@ export async function assignLoadToLaneAction(params: any) {
     const { laneId, loadId } = params;
 
     // Use a strict transaction
-    return await db.$transaction(async (tx) => {
+    return await db.$transaction(async (tx: any) => {
         const lane = await tx.stagingLane.findUnique({ where: { id: laneId } });
         if (!lane) throw new Error('Lane not found');
         if (lane.status !== 'EMPTY' && lane.status !== 'RESERVED') {

@@ -244,7 +244,7 @@ function PalletInner({ initial, palletIndex }: { initial: Inspection; palletInde
           isReturns={inspection.type === 'returns'}
           currentUser={inspection.startedBy || 'unknown'}
           photos={pallet.photos}
-          onCaptured={(slotKey, photo) =>
+          onCaptured={(slotKey: any, photo: any) =>
             dispatch({
               type: 'REPLACE_PALLET_PHOTO',
               palletIndex,
@@ -252,7 +252,7 @@ function PalletInner({ initial, palletIndex }: { initial: Inspection; palletInde
               photo,
             })
           }
-          onQualityFlag={(photoId, flag) =>
+          onQualityFlag={(photoId: any, flag: any) =>
             dispatch({ type: 'SET_PHOTO_QUALITY_FLAG', photoId, flag })
           }
         />

@@ -1,15 +1,16 @@
-import { PALLET_PHOTO_REQUIREMENTS, type PalletType } from '@gxo/semantic';
+import { getRequiredPhotoSlots, type PalletType } from '@gxo/semantic';
 
 interface VerifyPalletPayload {
     palletType: PalletType;
+    batchCount?: number;
     // Map of photoRequirement string -> photo URL or ID
     uploadedPhotos: Record<string, string>; 
 }
 
 export async function verifyPalletAction(payload: VerifyPalletPayload) {
-    const expectedPhotos = PALLET_PHOTO_REQUIREMENTS[payload.palletType];
+    const expectedPhotos = getRequiredPhotoSlots(payload.palletType, payload.batchCount || 1).map(slot => slot.key);
     
-    if (!expectedPhotos) {
+    if (!expectedPhotos || expectedPhotos.length === 0) {
         throw new Error(`Unknown pallet type: ${payload.palletType}`);
     }
 
