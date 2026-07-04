@@ -1,3 +1,4 @@
+import { generateId } from '../utils/uuid';
 import { useState } from 'react';
 import type {
   InspectionPhoto,
@@ -78,7 +79,7 @@ export function SlotPhotoCapture({
     };
 
     const photo: InspectionPhoto = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       capturedAt: new Date().toISOString(),
       capturedBy: currentUser || 'unknown',
       category,
@@ -219,7 +220,7 @@ export function MultiPhotoCapture({
     };
 
     const photo: InspectionPhoto = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       capturedAt: new Date().toISOString(),
       capturedBy: currentUser || 'unknown',
       category,

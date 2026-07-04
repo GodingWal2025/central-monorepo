@@ -7,13 +7,18 @@ import {
 } from './db';
 
 let isSyncing = false;
+let apiUrl = '';
+
+export function setApiUrl(url: string): void {
+  apiUrl = url;
+}
 
 // Ping helper to verify the server is actually reachable
 async function isServerReachable(): Promise<boolean> {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3000);
-    const res = await fetch(`${(import.meta as any).env.VITE_API_URL || ''}/api/health`, { method: 'GET', signal: controller.signal });
+    const res = await fetch(`${apiUrl}/api/health`, { method: 'GET', signal: controller.signal });
     clearTimeout(timeoutId);
     return res.status === 200;
   } catch {
@@ -56,7 +61,7 @@ export async function processSyncQueue(): Promise<void> {
             continue;
           }
           
-          const response = await fetch(`${(import.meta as any).env.VITE_API_URL || ''}/api/inspections`, {
+          const response = await fetch(`${apiUrl}/api/inspections`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(inspection),
@@ -94,7 +99,7 @@ export async function processSyncQueue(): Promise<void> {
           formData.append('photoId', entry.photoId);
           formData.append('inspectionId', entry.inspectionId);
           
-          const response = await fetch(`${(import.meta as any).env.VITE_API_URL || ''}/api/photo-upload`, {
+          const response = await fetch(`${apiUrl}/api/photo-upload`, {
             method: 'POST',
             body: formData,
           });

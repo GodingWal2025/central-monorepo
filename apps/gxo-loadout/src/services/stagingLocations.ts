@@ -1,3 +1,4 @@
+import { generateId } from '@gxo/semantic';
 // Staging Locations service.
 //
 // Per-site, admin-editable list. Inspector picks from this list at the start
@@ -41,7 +42,7 @@ export function listAllStagingLocations(siteId: string): StagingLocation[] {
 export function addStagingLocation(name: string, siteId: string): StagingLocation {
   const all = loadAll();
   const loc: StagingLocation = {
-    id: crypto.randomUUID(),
+    id: generateId(),
     name: name.trim(),
     siteId,
     active: true,

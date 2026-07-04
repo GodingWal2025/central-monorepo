@@ -1,3 +1,4 @@
+import { generateId } from '../utils/uuid';
 // Inspector list service.
 //
 // Per-site, admin-editable list. Starts empty — managers must add at least
@@ -36,7 +37,7 @@ export function listAllInspectorsForSite(siteId: string): Inspector[] {
 export function addInspector(name: string, siteId: string): Inspector {
   const inspectors = loadAll();
   const newInspector: Inspector = {
-    id: crypto.randomUUID(),
+    id: generateId(),
     name: name.trim(),
     siteId,
     active: true,

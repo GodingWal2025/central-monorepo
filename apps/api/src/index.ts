@@ -1,3 +1,9 @@
+// Mock CSS imports for Node environment before loading any packages
+declare var require: any;
+if (typeof require !== 'undefined' && require.extensions) {
+  require.extensions['.css'] = () => {};
+}
+
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import { executeActionHandler } from "./handlers/executeAction";
 import { getOntologyHandler } from "./handlers/getOntology";

@@ -2,11 +2,11 @@ import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { dbGetInspection } from '@gxo/semantic';
 import { useInspection } from '@gxo/semantic';
-import { SlotPhotoCapture } from '@gxo/semantic';
 import { SuggestableField } from '@gxo/semantic';
 import { QualityFlagButton } from '@gxo/semantic';
 import type { Inspection, BatchSection } from '@gxo/semantic';
-import { getRequiredPhotoSlots, PALLET_TYPES } from '@gxo/semantic';
+import { PALLET_TYPES } from '@gxo/semantic';
+import { DynamicPhotoChecklist } from '../components/DynamicPhotoChecklist';
 
 const FINDINGS_OPTIONS = [
   'Picked Short',
@@ -75,9 +75,7 @@ function PalletInner({ initial, palletIndex }: { initial: Inspection; palletInde
     return null;
   }
 
-  const requiredSlots = getRequiredPhotoSlots(pallet.palletType, pallet.batchCount);
-  const findSlotPhoto = (slotKey: string) =>
-    pallet.photos.find((p) => p.slotKey === slotKey);
+
 
   // Expected batches for this pallet — pulled from picklist line items
   // assigned to the same delivery, plus any batches already entered manually
@@ -237,48 +235,27 @@ function PalletInner({ initial, palletIndex }: { initial: Inspection; palletInde
         </div>
       </section>
 
-      {/* Photo slots — fixed-position grid */}
+      {/* Photo slots — handled by Semantic Photo Dictionary */}
       <section className="section">
-        <div className="section__head">
-          <h2 className="section__title" style={{ textTransform: 'none' }}>
-            * Take pictures of each side, top, bag flap, and LPN
-          </h2>
-          <span className="section__meta">
-            {pallet.photos.filter((p) => p.slotKey).length} of {requiredSlots.length} captured
-          </span>
-        </div>
-
-
-
-        <div className="photo-slot-grid">
-          {requiredSlots.map((slot) => (
-            <SlotPhotoCapture
-              key={slot.key}
-              inspectionId={inspection.id}
-              category={
-                inspection.type === 'returns' && slot.category === 'Pallet_Side'
-                  ? 'Returns_Damage_Assessment'
-                  : slot.category
-              }
-              slotKey={slot.key}
-              slotLabel={slot.label}
-              palletIndex={palletIndex}
-              existingPhoto={findSlotPhoto(slot.key)}
-              currentUser={inspection.startedBy || 'unknown'}
-              onCaptured={(photo) =>
-                dispatch({
-                  type: 'REPLACE_PALLET_PHOTO',
-                  palletIndex,
-                  slotKey: slot.key,
-                  photo,
-                })
-              }
-              onQualityFlag={(photoId, flag) =>
-                dispatch({ type: 'SET_PHOTO_QUALITY_FLAG', photoId, flag })
-              }
-            />
-          ))}
-        </div>
+        <DynamicPhotoChecklist 
+          palletType={pallet.palletType}
+          inspectionId={inspection.id}
+          palletIndex={palletIndex}
+          isReturns={inspection.type === 'returns'}
+          currentUser={inspection.startedBy || 'unknown'}
+          photos={pallet.photos}
+          onCaptured={(slotKey, photo) =>
+            dispatch({
+              type: 'REPLACE_PALLET_PHOTO',
+              palletIndex,
+              slotKey,
+              photo,
+            })
+          }
+          onQualityFlag={(photoId, flag) =>
+            dispatch({ type: 'SET_PHOTO_QUALITY_FLAG', photoId, flag })
+          }
+        />
       </section>
 
       {/* Batch sections - one per batch on this pallet */}

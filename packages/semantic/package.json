@@ -1,10 +1,11 @@
 {
   "name": "@gxo/semantic",
   "version": "0.1.0",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "browser": "src/index.ts",
   "types": "src/index.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node -e \"const fs=require('fs'); const path=require('path'); const srcDir='src/components'; const destDir='dist/components'; if (fs.existsSync(srcDir)) { if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, {recursive:true}); fs.readdirSync(srcDir).filter(f=>f.endsWith('.css')).forEach(f=>fs.copyFileSync(path.join(srcDir,f), path.join(destDir,f))) }\"",
     "test": "vitest run",
     "test:watch": "vitest --watch"
   },

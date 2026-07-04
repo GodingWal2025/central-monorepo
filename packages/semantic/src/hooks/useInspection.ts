@@ -1,3 +1,4 @@
+import { generateId } from '../utils/uuid';
 import { useEffect, useReducer } from 'react';
 import type {
   Inspection,
@@ -19,7 +20,7 @@ import { dbSaveInspection } from '../services/db';
 
 export function emptyInspection(siteId: string, type: InspectionType = 'outbound'): Inspection {
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     type,
     siteId,
     status: 'Draft',
@@ -72,7 +73,7 @@ export function emptyInspection(siteId: string, type: InspectionType = 'outbound
 // Helper: create a new batch section with default expected count derived from picklist later
 function newBatchSection(): BatchSection {
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     batchCode: emptySuggestable(),
     productName: emptySuggestable(),
     expectedBagCount: 0,

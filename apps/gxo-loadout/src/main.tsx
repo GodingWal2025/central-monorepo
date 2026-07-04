@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './styles.css';
 import { runResetIfNeeded } from './services/appReset';
+import { setApiUrl } from '@gxo/semantic';
+
+// Set API URL for the shared library
+setApiUrl(import.meta.env.VITE_API_URL || '');
 
 
 // Wipe stale data from prior versions before app loads. Once this resolves,

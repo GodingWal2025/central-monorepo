@@ -1,3 +1,4 @@
+import { generateId } from '@gxo/semantic';
 // Sites service - admin-managed list.
 //
 // Starts empty after install. Admin adds sites via the Sites tab.
@@ -40,7 +41,7 @@ export function addSite(name: string, address?: string): Site {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
-    .slice(0, 32) || crypto.randomUUID().slice(0, 8);
+    .slice(0, 32) || generateId().slice(0, 8);
 
   let finalId = id;
   let suffix = 1;

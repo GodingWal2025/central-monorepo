@@ -230,21 +230,27 @@ export function NewInspectionRoute() {
   const start = async () => {
     if (!canStart) return;
     setCreating(true);
-    const inspection = {
-      ...emptyInspection(config.siteId, inspectionType),
-      pickerName: inspectionType === 'returns' ? undefined : pickerName,
-      startedBy: selectedInspectors.join(', '),
-      currentInspector: selectedInspectors.join(', '),
-      lastEditedBy: selectedInspectors.join(', '),
-      stagingLocation: selectedLocations.join(', '),
-      returnsBrand: inspectionType === 'returns' ? (returnsBrand as 'Dekalb' | 'Channel') : undefined,
-    };
-    await dbSaveInspection(inspection);
-    
-    if (inspectionType === 'returns') {
-      navigate(`/inspection/${inspection.id}/capture-returns-bol`);
-    } else {
-      navigate(`/inspection/${inspection.id}/capture-bol`);
+    try {
+      const inspection = {
+        ...emptyInspection(config.siteId, inspectionType),
+        pickerName: inspectionType === 'returns' ? undefined : pickerName,
+        startedBy: selectedInspectors.join(', '),
+        currentInspector: selectedInspectors.join(', '),
+        lastEditedBy: selectedInspectors.join(', '),
+        stagingLocation: selectedLocations.join(', '),
+        returnsBrand: inspectionType === 'returns' ? (returnsBrand as 'Dekalb' | 'Channel') : undefined,
+      };
+      await dbSaveInspection(inspection);
+      
+      if (inspectionType === 'returns') {
+        navigate(`/inspection/${inspection.id}/capture-returns-bol`);
+      } else {
+        navigate(`/inspection/${inspection.id}/capture-bol`);
+      }
+    } catch (e: any) {
+      console.error(e);
+      alert('Error starting inspection: ' + e.message);
+      setCreating(false);
     }
   };
 

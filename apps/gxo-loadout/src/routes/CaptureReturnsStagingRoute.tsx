@@ -1,3 +1,4 @@
+import { generateId } from '@gxo/semantic';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { dbGetInspection, dbSavePhotoBlob, dbSaveInspection } from '@gxo/semantic';
@@ -40,7 +41,7 @@ export function CaptureReturnsStagingRoute() {
 
     const bitmap = await createImageBitmap(blob);
     const photo: InspectionPhoto = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       capturedAt: new Date().toISOString(),
       capturedBy: inspection.startedBy || 'unknown',
       category: 'Staging_Final_Lane',

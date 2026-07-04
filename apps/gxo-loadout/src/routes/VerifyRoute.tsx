@@ -1,3 +1,4 @@
+import { generateId } from '@gxo/semantic';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { dbGetInspection } from '@gxo/semantic';
@@ -42,7 +43,7 @@ function VerifyInner({
     dispatch({
       type: 'ADD_DELIVERY',
       delivery: {
-        id: crypto.randomUUID(),
+        id: generateId(),
         deliveryNumber: '',
         stopNumber: inspection.bol.deliveries.length + 1,
         lineItemIds: [],
