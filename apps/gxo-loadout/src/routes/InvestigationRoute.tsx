@@ -167,7 +167,7 @@ export function InvestigationRoute() {
               
               // Count quantities scanned
               const totalBags = item.pallets?.reduce((sum: number, p: any) => {
-                return sum + (p.batchSections?.reduce((bsSum: number, bs: any) => bsSum + (bs.actualBagCount || 0), 0) || 0);
+                return sum + (p.batchSections?.reduce((bsSum: number, bs: any) => bsSum + (bs.actualBagCount?.value || 0), 0) || 0);
               }, 0) || 0;
 
               return (
@@ -254,9 +254,9 @@ export function InvestigationRoute() {
                                 return (
                                   <tr key={li.id}>
                                     <td className="mono">{del?.deliveryNumber || '—'}</td>
-                                    <td className="mono fw-500">{li.batchCode || '—'}</td>
-                                    <td className="soft">{li.productName || '—'}</td>
-                                    <td className="right num">{li.expectedQuantity || 0}</td>
+                                    <td className="mono fw-500">{li.batchCode?.value || '—'}</td>
+                                    <td className="soft">{li.productName?.value || '—'}</td>
+                                    <td className="right num">{li.expectedQuantity?.value || 0}</td>
                                     <td className="right num fw-500">{li.actualQuantity || 0}</td>
                                   </tr>
                                 );
@@ -281,7 +281,7 @@ export function InvestigationRoute() {
                               <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '6px' }}>
                                 {p.batchSections?.map((bs: any) => (
                                   <div key={bs.id} className="small mono">
-                                    Batch: <strong>{bs.batchCode || '—'}</strong> ({bs.actualBagCount || 0} bags)
+                                    Batch: <strong>{bs.batchCode?.value || '—'}</strong> ({bs.actualBagCount?.value || 0} bags)
                                   </div>
                                 ))}
                               </div>
@@ -330,20 +330,20 @@ export function InvestigationRoute() {
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '8px' }}>
                               <div>
                                 <span className="xs soft">40×40 Pallets:</span>{' '}
-                                <strong className="small">{item.pallets40x40Used ?? 0}</strong>
+                                <strong className="small">{item.staging?.pallets40x40Used ?? 0}</strong>
                               </div>
                               <div>
                                 <span className="xs soft">48×40 Pallets:</span>{' '}
-                                <strong className="small">{item.pallets48x40Used ?? 0}</strong>
+                                <strong className="small">{item.staging?.pallets48x40Used ?? 0}</strong>
                               </div>
                               <div>
                                 <span className="xs soft">Seedpaks:</span>{' '}
-                                <strong className="small">{item.seedpaksUsed ?? 0}</strong>
+                                <strong className="small">{item.staging?.seedpaksUsed ?? 0}</strong>
                               </div>
                             </div>
-                            {item.otherPackagingNotes && (
+                            {item.staging?.otherPackagingNotes && (
                               <div className="xs soft" style={{ borderTop: '1px solid var(--rule-soft)', paddingTop: '6px' }}>
-                                <strong>Notes:</strong> {item.otherPackagingNotes}
+                                <strong>Notes:</strong> {item.staging.otherPackagingNotes}
                               </div>
                             )}
 
