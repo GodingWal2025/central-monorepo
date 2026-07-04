@@ -185,17 +185,15 @@ export async function dbEnqueueSync(entry: Omit<SyncQueueEntry, 'id' | 'createdA
   // Deduplicate pending updates for the same inspection or training label to prevent queue bloat
   if (entry.type === 'inspection-save' || entry.type === 'inspection-complete') {
     const tx = db.transaction('syncQueue', 'readwrite');
-    const index = tx.store.index('by-status');
-    let cursor = await index.openCursor('pending');
-    while (cursor) {
-      const record = cursor.value;
+    const allPending = await tx.store.index('by-status').getAll('pending');
+    for (const record of allPending) {
       if (
         record.inspectionId === entry.inspectionId &&
-        (record.type === 'inspection-save' || record.type === 'inspection-complete')
+        (record.type === 'inspection-save' || record.type === 'inspection-complete') &&
+        record.id !== undefined
       ) {
-        await cursor.delete();
+        await tx.store.delete(record.id);
       }
-      cursor = await cursor.continue();
     }
     await tx.done;
   }
