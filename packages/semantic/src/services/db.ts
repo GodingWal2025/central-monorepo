@@ -181,10 +181,10 @@ export async function dbMarkPhotoUploaded(photoId: string): Promise<void> {
 
 export async function dbEnqueueSync(entry: Omit<SyncQueueEntry, 'id' | 'createdAt' | 'attempts' | 'status'>): Promise<number> {
   const db = await getDB();
-  
+  const tx = db.transaction('syncQueue', 'readwrite');
+
   // Deduplicate pending updates for the same inspection or training label to prevent queue bloat
   if (entry.type === 'inspection-save' || entry.type === 'inspection-complete') {
-    const tx = db.transaction('syncQueue', 'readwrite');
     const allPending = await tx.store.index('by-status').getAll('pending');
     for (const record of allPending) {
       if (
@@ -195,15 +195,17 @@ export async function dbEnqueueSync(entry: Omit<SyncQueueEntry, 'id' | 'createdA
         await tx.store.delete(record.id);
       }
     }
-    await tx.done;
   }
-  
-  return db.add('syncQueue', {
+
+  const resultPromise = tx.store.add({
     ...entry,
     attempts: 0,
     status: 'pending',
     createdAt: new Date().toISOString(),
-  }) as Promise<number>;
+  });
+
+  await tx.done;
+  return resultPromise as Promise<number>;
 }
 
 export async function dbGetPendingSync(): Promise<SyncQueueEntry[]> {
