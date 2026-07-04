@@ -125,12 +125,11 @@ export async function processSyncQueue(): Promise<void> {
     // Clean up completed entries from syncQueue
     const db = await (await import('./db')).getDB();
     const tx = db.transaction('syncQueue', 'readwrite');
-    let cursor = await tx.store.openCursor();
-    while (cursor) {
-      if (cursor.value.status === 'done') {
-        await cursor.delete();
+    const allEntries = await tx.store.getAll();
+    for (const record of allEntries) {
+      if (record.status === 'done' && record.id !== undefined) {
+        await tx.store.delete(record.id);
       }
-      cursor = await cursor.continue();
     }
     await tx.done;
     
