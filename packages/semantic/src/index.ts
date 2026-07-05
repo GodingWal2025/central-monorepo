@@ -1,6 +1,4 @@
 export * from './types/inspection';
-export * from './types/load';
-// export * from './types/site';
 export * from './rules/batchCodeMatching';
 export * from './rules/photoQuality';
 export * from './rules/stopStickerValidation';
@@ -23,7 +21,6 @@ export * from './components/SuggestableField';
 export * from './components/ImageQualityModal';
 export * from './services/db';
 export * from './services/sync';
-export * from './services/ontologyApi';
 export * from './services/inspectors';
 export * from './camera/PhotoCapture';
 export * from './camera/useCameraCapture';

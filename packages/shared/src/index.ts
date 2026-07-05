@@ -1,7 +1,3 @@
-// @gxo/shared – Barrel export
-// Re-exports all shared utilities, config, errors, and logging.
-
-export * from './config';
-export * from './errors';
-export * from './logger';
-export * from './utils';
+// @gxo/shared – shared utility package
+// Add shared utilities, constants, or helpers here as the project grows.
+export {};
