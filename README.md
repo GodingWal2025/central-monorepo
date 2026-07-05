@@ -1,6 +1,6 @@
 # GXO Operations Monorepo
 
-This repository contains the centralized code for the GXO Load Verification and Warehouse Operations system. It is built on a **Palantir-inspired Ontology Architecture**, separating the visual UI from the strict business rules and database mutations.
+This repository contains the centralized code for the GXO Warehouse Operations system at the **Bayer Albert Lea** facility. It is built on a **Palantir-inspired Ontology Architecture**, separating the visual UI from strict business rules and database mutations.
 
 The repository is structured as a **Turborepo Monorepo**, allowing multiple applications (frontends and backends) to share unified TypeScript types, business rules, and API clients seamlessly.
 
@@ -9,67 +9,122 @@ The repository is structured as a **Turborepo Monorepo**, allowing multiple appl
 ## 🏗️ High-Level Architecture
 
 The monorepo is divided into two primary zones:
-1. **`/apps`**: Deployable applications. These are the physical websites or serverless API environments that run in the Azure cloud.
-2. **`/packages`**: Internal shared libraries. These are modular chunks of code (like data types, UI components, and API clients) that are imported by the apps but are never deployed on their own.
+1. **`/apps`**: Deployable applications — physical websites or serverless API environments that run in the Azure cloud.
+2. **`/packages`**: Internal shared libraries — modular chunks of code (types, UI components, API clients) imported by apps but never deployed independently.
 
 ---
 
 ## 📂 Directory Deep Dive
 
-### 1. `/apps/api` (The Serverless Gatekeeper)
-This is the Azure Functions v4 backend. It acts as the strict gatekeeper between the frontend apps and the Azure SQL Database. No frontend app talks to the database directly; they must route through this API.
+### 1. `/apps/api` — The Serverless Gatekeeper
+Azure Functions v4 backend. Acts as the strict gatekeeper between the frontend apps and the Prisma/SQLite database. No frontend talks to the database directly; all traffic routes through this API.
 
-* **`prisma/schema.prisma`**: The single source of truth for the database layout. It maps out the real-world Ontology objects (Loads, Pallets, Staging Lanes, Inspections) and their relationships.
-* **`src/index.ts`**: The main Azure entry point. It registers the HTTP endpoints (`getOntology` and `executeAction`) with the serverless environment.
-* **`src/database.ts`**: The shared Prisma database client instance. It ensures serverless functions reuse connections efficiently rather than crashing the database with too many handshakes.
-* **`src/handlers/executeAction.ts`**: The dynamic orchestration engine. It intercepts incoming POST requests, verifies the action token, and routes it to the correct kinetic logic file.
-* **`src/actions/`**: The "Verbs" of the system. Each file here (e.g., `verifyPallet.ts`, `assignLoadToLane.ts`) contains the isolated business rules and the safe, atomic database transactions for a specific action.
-* **`host.json` & `local.settings.json`**: Azure runtime configurations and local environment variables (like the database connection string).
+- **`prisma/schema.prisma`** — Single source of truth for the database schema (Employees, Skills, Equipment, Appointments, Staging Lanes, etc.)
+- **`prisma/seed.ts`** — Seed script to populate initial data. Run with `npx prisma db seed` from `apps/api/`.
+- **`src/index.ts`** — Azure entry point. Registers two HTTP routes: `GET /api/ontology/{objectType}` (reads) and `POST /api/ontology/actions` (writes).
+- **`src/handlers/getOntology.ts`** — Handles all read requests, mapping Prisma rows into standardized SDK objects.
+- **`src/handlers/executeAction.ts`** — Dynamic action router. Validates and dispatches POST actions to the correct action handler.
+- **`src/actions/`** — The "Verbs" of the system. Each file contains isolated business logic and atomic DB transactions for a domain:
+  - `opsHubActions.ts` — Employee, Skill, Rating, Coaching, Contact, Equipment mutations
+  - `dockxActions.ts` — Appointment, Door, Operator, PIT Task mutations
+  - `verifyPallet.ts`, `assignLoadToLane.ts` — Load verification mutations
+- **`host.json`** — Azure Functions runtime configuration.
+- **`local.settings.json`** _(gitignored)_ — Local environment variables. Create from the template below.
 
-### 2. `/apps/gxo-loadout` (The Specialized Frontend)
-This is the Vite/React application used on tablets and scanners by dock clerks to verify outbound freight. It is a "thin client"—it handles UI rendering and camera captures, but delegates all heavy data logic to the shared packages.
+### 2. `/apps/Operations-Hub` — The Internal Dashboard
+Vite/React application for operations managers and supervisors. Manages employees, skills assessments, coaching opportunities, contacts, equipment, PIT inspections, and inventory overview.
 
-* **`src/App.tsx` & `src/main.tsx`**: The React DOM initializers and global context providers.
-* **`src/routes/`**: Contains the page-level components (e.g., `ScanPalletRoute.tsx`, `StagingLanesRoute.tsx`, `AdminRoute.tsx`). These map directly to URLs in the browser.
-* **`src/components/`**: Reusable visual blocks like `StagingLanesMap.tsx`, `PhotoCapture.tsx`, and `QualityFlagButton.tsx`.
-* **`src/hooks/`**: Custom React hooks (e.g., `useInspection.ts`, `useCameraCapture.ts`) that manage local component state before dispatching to the API.
-* **`src/services/`**: Local utility wrappers for things like IndexedDB offline sync (`db.ts`), image compression (`compressPhoto.ts`), and device configurations.
+- **`src/hooks/useData.ts`** — Central data hook. Fetches all domain data via `ontologyClient` and provides CRUD callbacks.
+- **`src/pages/`** — Page components: `HomePage`, `TeamRosterPage`, `EmployeeDetailPage`, `SkillsLibraryPage`, `SkillDetailPage`, `RecordAssessmentPage`, `ContactsPage`, `EquipmentsPage`, `InspectionsPage`, `InventoryPage`.
+- **`src/components/`** — Shared UI: modals, sidebar, forms.
+- **`vite.config.ts`** — Proxies `/api` to the local Azure Functions emulator on port 7071.
 
-### 3. `/packages/semantic` (The Shared Ontology SDK)
-This is the "Brain" of the repository. It contains the data definitions, state machines, and API fetch wrappers. By keeping this in a shared package, future apps (like an Operations Hub dashboard) can import it and instantly understand how the warehouse works.
+### 3. `/apps/DockX` — Dock Management
+Vite/React app for dock clerks. Manages inbound/outbound appointments, door assignments, PIT task tracking, and the PitBoard operator view.
 
-* **`src/types/`**: The strict TypeScript definitions for real-world nouns (`ontology.ts`, `load.ts`, `site.ts`). This ensures compile-time safety across the entire monorepo.
-* **`src/client.ts`**: The unified API wrapper. Frontends use `ontologyClient.executeAction(...)` instead of writing raw `fetch` commands, standardizing network calls and error handling.
-* **`src/rules/`**: Agnostic business logic functions (e.g., `photoQuality.ts`, `handoffValidation.ts`). These enforce rules before data even leaves the device.
-* **`src/state/`**: XState machine configurations (`inspectionMachine.ts`, `palletMachine.ts`). These dictate complex multi-step workflows, ensuring an inspection cannot be marked "Complete" until "Photos Captured" is finished.
-* **`__tests__/`**: Vitest suites guaranteeing that business rules calculate accurately. 
+### 4. `/apps/gxo-loadout` — Load Verification Scanner
+Vite/React app used on tablets and scanners by dock clerks to verify outbound freight (pallet scanning, staging lane assignment, photo capture).
 
-### 4. `/packages/shared` (The Utility Belt)
-Reserved for highly generic, non-business-specific tools.
-* Currently houses shared ESLint, Prettier, or TypeScript configurations (`tsconfig.json`) to keep formatting perfectly synced across all teams and projects.
+### 5. `/apps/inventory-app` — Inventory Management App
+Standalone Vite/React app for equipment inventory management. Connects to the same shared API. Run on port 5175 in development.
+
+### 6. `/packages/semantic` — The Shared Ontology SDK
+The "Brain" of the repository. Contains data definitions, API clients, shared components, and business rules.
+
+- **`src/types/ontology.ts`** — TypeScript definitions for all domain objects (Employee, Skill, Equipment, Appointment, etc.)
+- **`src/client.ts`** — Unified API wrapper. All apps use `ontologyClient.getEmployees()`, `ontologyClient.createSkill(...)` etc. instead of raw `fetch` calls.
+- **`src/components/`** — Shared UI components (KanbanBoard, DashboardKPIBoxes, StagingLanesMap, etc.)
+
+### 7. `/packages/shared` — Utility Belt
+Generic, non-business-specific shared utilities and type exports.
 
 ---
 
 ## ⚙️ Root Configuration Files
 
-At the very base of the repository are the files that stitch the monorepo together:
-
-* **`package.json`**: The master dependency manager. The `"workspaces": ["apps/*", "packages/*"]` array tells npm to symlink all internal folders together so they can share code locally without public publishing.
-* **`turbo.json`**: The Turborepo pipeline configuration. It defines how tasks like `build`, `dev`, and `test` are executed across multiple folders simultaneously. It dictates caching rules (e.g., don't re-run tests if the code hasn't changed) to drastically speed up CI/CD.
-* **`.github/workflows/ci.yml`**: The automated GitHub Actions deployment script. When code is merged to `main`, this file triggers Azure to build the frontends, compile the API, and release them securely to the cloud.
+- **`package.json`** — Master dependency manager. `"workspaces": ["apps/*", "packages/*"]` tells npm to symlink internal folders so they can share code locally.
+- **`turbo.json`** — Turborepo pipeline. Defines how `build`, `dev`, `test`, and `deploy` tasks run across all packages simultaneously with caching.
+- **`.github/workflows/ci.yml`** — GitHub Actions CI: installs, builds the full monorepo on every push/PR to `main`.
+- **`.github/workflows/build-web.yml`** — Builds Operations-Hub when its source changes.
+- **`.github/workflows/deploy-backend.yml`** — Builds the API; deploy step is commented out until Azure secrets are configured.
 
 ---
 
 ## 🚀 Getting Started Locally
 
-Because of the Turborepo setup, spinning up the entire localized cloud environment takes a single command.
+### Prerequisites
+- Node.js 20+
+- [Azure Functions Core Tools v4](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local)
 
-1. **Install Dependencies:** (Run from the root directory)
-   ```bash
-   npm install
-   ```
-2. **Start the Development Environment:**
-   ```bash
-   npm run dev
-   ```
-   *This command leverages Turborepo to simultaneously launch the Vite frontend and the Azure Functions emulator.*
+### 1. Install Dependencies
+```bash
+npm install
+```
+
+### 2. Set Up the Database (first time only)
+```bash
+cd apps/api
+npx prisma migrate dev --name init
+npx prisma db seed
+cd ../..
+```
+
+### 3. Create Local API Settings
+Create `apps/api/local.settings.json` (this file is gitignored):
+```json
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "",
+    "FUNCTIONS_WORKER_RUNTIME": "node"
+  },
+  "Host": {
+    "CORS": "*"
+  }
+}
+```
+
+### 4. Start the Development Environment
+```bash
+npm run dev
+```
+
+This uses Turborepo to simultaneously launch:
+- **Operations-Hub** on http://localhost:3000
+- **DockX** on http://localhost:5173
+- **gxo-loadout** on http://localhost:5174
+- **inventory-app** on http://localhost:5175
+- **API (Azure Functions emulator)** on http://localhost:7071
+
+---
+
+## 🚢 Deployment
+
+Deployment is handled via GitHub Actions. Before enabling auto-deploy, add these secrets to the GitHub repository settings:
+
+| Secret | Description |
+|--------|-------------|
+| `AZURE_STATIC_WEB_APPS_API_TOKEN` | Deploy token for the Operations-Hub Azure Static Web App |
+| `AZURE_FUNCTIONAPP_PUBLISH_PROFILE` | Publish profile for the `gxo-operations-api` Azure Function App |
+
+Once secrets are set, uncomment the deploy steps in `.github/workflows/deploy-backend.yml` and `.github/workflows/ci.yml`.

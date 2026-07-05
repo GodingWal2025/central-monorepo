@@ -6,10 +6,7 @@
     "@azure/functions-extensions-base": "^0.3.0",
     "@gxo/semantic": "*",
     "@gxo/shared": "*",
-    "@pnp/sp": "^3.x",
-    "@prisma/client": "^5.22.0",
-    "mssql": "^12.7.0",
-    "sqlite3": "^6.0.1"
+    "@prisma/client": "^5.22.0"
   },
   "main": "dist/index.js",
   "scripts": {

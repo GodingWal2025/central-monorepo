@@ -1,0 +1,39 @@
+name: Build Operations-Hub
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/Operations-Hub/**"
+      - "packages/semantic/**"
+      - "packages/shared/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/Operations-Hub/**"
+      - "packages/semantic/**"
+      - "packages/shared/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Operations-Hub
+        run: npm run build -w operations-hub
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: operations-hub-dist
+          path: apps/Operations-Hub/dist
+          retention-days: 7

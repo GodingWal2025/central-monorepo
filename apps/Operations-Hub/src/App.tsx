@@ -225,7 +225,7 @@ export default function App() {
             )}
 
             {view.name === 'inventory' && (
-              <InventoryPage />
+              <InventoryPage equipments={equipments} />
             )}
           </main>
         </div>

@@ -8,3 +8,15 @@ coverage/
 *.log
 .DS_Store
 .turbo/
+
+# SQLite database files (generated, not source)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Azure Functions local config (contains env secrets)
+local.settings.json
+
+# Scratch / temp directories
+scratch/
