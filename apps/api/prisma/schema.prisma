@@ -7,6 +7,8 @@ datasource db {
   url      = "file:./dev.db"
 }
 
+// ─── GXO-Loadout Domain ──────────────────────────────────────────
+
 model Site {
   id           String        @id @default(cuid())
   name         String
@@ -77,4 +79,119 @@ model Inspection {
   load          Load     @relation(fields: [loadId], references: [id])
   palletId      String?
   pallet        Pallet?  @relation(fields: [palletId], references: [id])
+}
+
+// ─── DockX Domain ────────────────────────────────────────────────
+
+model Appointment {
+  id             Int       @id @default(autoincrement())
+  date           String    // YYYY-MM-DD
+  time           String    // HH:MM
+  type           String    @default("Inbound") // Inbound, Outbound
+  carrier        String
+  bolShipmentNo  String
+  customer       String
+  productType    String    @default("")
+  status         String    @default("Scheduled") // Scheduled, Checked In, Completed, Late, Missed
+  doorId         Int?
+  doorName       String?
+  operatorId     Int?
+  operatorName   String?
+  checkInTime    String?
+  checkOutTime   String?
+  dwellTime      String?
+  pitTask        PitTask?
+}
+
+model Door {
+  id        Int    @id @default(autoincrement())
+  name      String
+  direction String @default("Both") // Inbound, Outbound, Both
+  status    String @default("Open") // Open, Occupied, Closed
+}
+
+model Operator {
+  id   Int    @id @default(autoincrement())
+  name String
+}
+
+model PitTask {
+  id            Int     @id @default(autoincrement())
+  appointmentId Int     @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  operatorName  String?
+  type          String  @default("Inbound/outbound") // Outbound, Inbound, Pick, Putaway, Verify, Return, Retag
+  status        String  @default("Pending") // Pending, In Progress, Completed
+  startedAt     String?
+  completedAt   String?
+}
+
+// ─── Operations-Hub Domain ───────────────────────────────────────
+
+model Employee {
+  id          Int       @id @default(autoincrement())
+  fullName    String
+  firstName   String
+  lastName    String
+  email       String
+  shift       String    @default("1st") // 1st, 2nd
+  jobRole     String    @default("CSR/Clerk")
+  hireDate    String
+  active      Boolean   @default(true)
+  photoUrl    String?
+  shirtSize   String?
+  birthday    String?
+  cwr         Boolean   @default(false)
+  phoneNumber String?
+  cwid        String?
+  notes       String?
+}
+
+model Skill {
+  id       Int    @id @default(autoincrement())
+  name     String
+  jobRoles String // JSON array of role strings
+  process  String?
+  action   String?
+}
+
+model EmployeeSkillRating {
+  id           Int    @id @default(autoincrement())
+  employeeId   Int
+  skill        String
+  rating       Int    @default(1) // 1-4
+  dateAssessed String
+  assessedBy   String @default("System")
+  notes        String?
+}
+
+model Coaching {
+  id         Int     @id @default(autoincrement())
+  employeeId Int
+  title      String
+  notes      String?
+  status     String  @default("Open") // Open, Closed
+  dateOpened String
+  dateClosed String?
+}
+
+model Contact {
+  id       Int    @id @default(autoincrement())
+  fullName String
+  company  String
+  role     String
+  phone    String
+  email    String @default("")
+  category String @default("")
+}
+
+model Equipment {
+  id            Int     @id @default(autoincrement())
+  name          String
+  type          String  @default("Other") // Forklift, Reach Truck, Pallet Jack, RF Scanner, Printer, Other
+  status        String  @default("Available") // Available, In Use, Under Maintenance, Out of Service
+  assignedToId  Int?
+  lastInspected String?
+  serialNumber  String
+  notes         String?
 }

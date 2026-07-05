@@ -11,7 +11,12 @@ export * from './state/palletMachine';
 
 export * from './types/ontology';
 export * from './client';
-export * from './components/StagingLanesMap';
+
+// Components
+export { StagingLanesMap } from './components/StagingLanesMap';
+export * from './components/KanbanBoard';
+export * from './components/DashboardKPIBoxes';
+export * from './components/DashboardTabs';
 export * from './components/InspectorPicker';
 export * from './components/QualityFlagButton';
 export * from './components/SuggestableField';

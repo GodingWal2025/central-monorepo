@@ -15,6 +15,8 @@ import { SkillDetailPage } from "./pages/SkillDetailPage";
 import { RecordAssessmentPage } from "./pages/RecordAssessmentPage";
 import { ContactsPage } from "./pages/ContactsPage";
 import { EquipmentsPage } from "./pages/EquipmentsPage";
+import { InspectionsPage } from "./pages/InspectionsPage";
+import { InventoryPage } from "./pages/InventoryPage";
 
 const pageTitle = (view: Navigation): string => {
   switch (view.name) {
@@ -26,6 +28,8 @@ const pageTitle = (view: Navigation): string => {
     case 'record': return 'Record Assessment';
     case 'contacts': return 'Contacts';
     case 'equipments': return 'Equipment Roster';
+    case 'inspections': return 'PIT Inspections';
+    case 'inventory': return 'Inventory';
     default: return '';
   }
 };
@@ -214,6 +218,14 @@ export default function App() {
                 employees={employees}
                 onSave={saveEquipment}
                 onDelete={removeEquipment} />
+            )}
+
+            {view.name === 'inspections' && (
+              <InspectionsPage equipments={equipments} />
+            )}
+
+            {view.name === 'inventory' && (
+              <InventoryPage />
             )}
           </main>
         </div>

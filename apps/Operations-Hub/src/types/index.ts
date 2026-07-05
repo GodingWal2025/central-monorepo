@@ -72,7 +72,9 @@ export type Navigation =
   | { name: 'skill'; skill: Skill }
   | { name: 'record'; defaultEmp?: Employee; defaultSkill?: string }
   | { name: 'contacts' }
-  | { name: 'equipments' };
+  | { name: 'equipments' }
+  | { name: 'inspections' }
+  | { name: 'inventory' };
 
 export const RATING_META: Record<number, { label: string; desc: string; color: string; bg: string; light: string }> = {
   1: { label: 'In-Training', desc: 'Learning, needs supervision', color: '#B91C1C', bg: '#FEF2F2', light: '#FEF2F2' },
