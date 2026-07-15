@@ -1,5 +1,3 @@
-import React from 'react';
-
 export interface DashboardKPI {
   label: string;
   val: string | number;

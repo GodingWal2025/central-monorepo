@@ -7,13 +7,16 @@ if (typeof require !== 'undefined' && require.extensions) {
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import { executeActionHandler } from "./handlers/executeAction";
 import { getOntologyHandler } from "./handlers/getOntology";
+import { checkAuth } from "./handlers/auth";
 
 // 1. The Kinetic Route (Handling Writes/Updates)
 app.http('executeAction', {
     methods: ['POST'],
-    authLevel: 'anonymous', 
+    authLevel: 'anonymous',
     route: 'ontology/actions',
     handler: async (req: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
+        const denied = checkAuth(req);
+        if (denied) return denied;
         try {
             const body: any = await req.json();
             const result = await executeActionHandler(body, context);

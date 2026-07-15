@@ -1,5 +1,3 @@
-import React from 'react';
-
 export interface DashboardTab {
   id: string;
   label: string;

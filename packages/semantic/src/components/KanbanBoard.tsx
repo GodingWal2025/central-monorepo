@@ -41,7 +41,7 @@ export function KanbanBoard({ columns, cards, onMoveCard }: KanbanBoardProps) {
     }
   };
 
-  const handleDragLeave = (e: React.DragEvent, colId: string) => {
+  const handleDragLeave = (_e: React.DragEvent, colId: string) => {
     if (dragOverColId === colId) {
       setDragOverColId(null);
     }

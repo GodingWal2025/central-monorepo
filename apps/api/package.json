@@ -9,10 +9,14 @@
     "@prisma/client": "^5.22.0"
   },
   "main": "dist/index.js",
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "scripts": {
     "dev": "npm run build && func start",
     "build": "tsc",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit",
     "start": "func start"
   },
   "devDependencies": {

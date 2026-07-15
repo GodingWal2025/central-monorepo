@@ -1,4 +1,12 @@
 import { db as prisma } from '../database';
+import { pick, requireId } from './_validation';
+
+// Writable appointment columns (everything except the primary key).
+const APPOINTMENT_FIELDS = [
+  'date', 'time', 'type', 'carrier', 'bolShipmentNo', 'customer', 'productType',
+  'status', 'doorId', 'doorName', 'operatorId', 'operatorName',
+  'checkInTime', 'checkOutTime', 'dwellTime',
+] as const;
 
 export async function createAppointmentAction(params: any) {
   const { date, time, type, carrier, bolShipmentNo, customer, productType } = params;
@@ -76,7 +84,8 @@ export async function completePitTaskAction(params: any) {
 }
 
 export async function updateAppointmentAction(params: any) {
-  const { id, ...data } = params;
+  const id = requireId(params);
+  const data = pick(params, APPOINTMENT_FIELDS);
   return await prisma.appointment.update({
     where: { id },
     data
