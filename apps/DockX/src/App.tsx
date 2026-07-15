@@ -1,20 +1,13 @@
 import { useState, useEffect } from 'react';
 import { StagingLanesMap, ontologyClient, KanbanBoard, KanbanColumnDef, KanbanCardDef, DashboardKPIBoxes, DashboardTabs } from '@gxo/semantic';
 
-import { PitBoard } from './PitBoard';
-
 export default function App() {
-  if (window.location.pathname === '/pit-board') {
-    return <PitBoard />;
-  }
-
   const [view, setView] = useState<'dashboard' | 'schedule' | 'gate' | 'admin' | 'staging-map'>('dashboard');
   const [dashboardTab, setDashboardTab] = useState<'Inbound' | 'Outbound' | 'Return'>('Outbound');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [stats, setStats] = useState({ total: 0, checked_in: 0, completed: 0, late: 0, missed: 0, ib_count: 0, ob_count: 0 });
   const [appointments, setAppointments] = useState<any[]>([]);
   const [metadata, setMetadata] = useState<any>({ customers: [], carriers: [], productTypes: [], doors: [], operators: [] });
-  const [pitTasks, setPitTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Forms
@@ -42,11 +35,9 @@ export default function App() {
   useEffect(() => {
     if (view === 'dashboard' || view === 'schedule') {
       fetchDashboardData();
-    } 
+    }
     if (view === 'schedule' || view === 'gate') {
       fetchAppointments();
-    } else if (view === 'pit-board') {
-      fetchPitTasks();
     }
   }, [view]);
 
@@ -88,33 +79,6 @@ export default function App() {
       setLoading(false);
     }
   }
-
-  async function fetchPitTasks() {
-    setLoading(true);
-    try {
-      const tasks = await ontologyClient.getPitTasks();
-      // Join with appointments
-      const appts = await ontologyClient.getAppointments();
-      const enrichedTasks = tasks.map(t => {
-        const appt = appts.find(a => a.id === t.properties.appointmentId);
-        return {
-          appt_id: t.properties.appointmentId,
-          bol_shipment_no: appt?.properties.bolShipmentNo || 'Unknown',
-          carrier: appt?.properties.carrier || 'Unknown',
-          door_name: appt?.properties.doorName || null,
-          pit_status: t.properties.status,
-          operator_name: t.properties.operatorName
-        };
-      });
-      setPitTasks(enrichedTasks);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-
 
   // Action: Add Appointment
   async function handleAddAppointment(e: React.FormEvent) {
@@ -206,30 +170,6 @@ export default function App() {
       setCheckOutSearch('');
       setCheckOutMatches([]);
       setView('dashboard');
-    } catch (err: any) {
-      alert(err.message);
-    }
-  }
-
-  // Action: Start PIT Task
-  async function handleStartPitTask(apptId: number, operatorName: string) {
-    if (!operatorName.trim()) {
-      alert('Please enter operator name');
-      return;
-    }
-    try {
-      await ontologyClient.startPitTask({ appointmentId: apptId, operatorName });
-      fetchPitTasks();
-    } catch (err: any) {
-      alert(err.message);
-    }
-  }
-
-  // Action: Complete PIT Task
-  async function handleCompletePitTask(apptId: number) {
-    try {
-      await ontologyClient.completePitTask({ appointmentId: apptId });
-      fetchPitTasks();
     } catch (err: any) {
       alert(err.message);
     }

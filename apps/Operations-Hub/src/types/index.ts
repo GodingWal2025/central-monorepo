@@ -1,5 +1,8 @@
-// Re-export JobRole from the ontology package to keep a single source of truth
-export type { JobRole } from '@gxo/semantic';
+// Import + re-export JobRole from the ontology package to keep a single source of
+// truth (the plain `export type { ... }` form does not bring the name into scope
+// for local use below).
+import type { JobRole } from '@gxo/semantic';
+export type { JobRole };
 
 export interface Employee {
   id: number;

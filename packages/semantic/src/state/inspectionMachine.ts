@@ -1,4 +1,4 @@
-import { InspectionStatus } from '../types/inspection';
+import type { InspectionStatus } from '../types/inspection';
 
 export type InspectionEvent = 'START' | 'COMPLETE' | 'CANCEL';
 export const transitionInspection = (currentState: InspectionStatus, event: InspectionEvent): InspectionStatus => {
