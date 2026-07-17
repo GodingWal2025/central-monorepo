@@ -7,6 +7,7 @@ if (typeof require !== 'undefined' && require.extensions) {
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import { executeActionHandler } from "./handlers/executeAction";
 import { getOntologyHandler } from "./handlers/getOntology";
+import { checkAuth } from "./handlers/auth";
 
 // Shared-key gate for mutating actions. Enforced only when API_ACTION_KEY is set,
 // so local dev stays open; set it (and VITE_API_ACTION_KEY on the clients) to enforce.
@@ -22,6 +23,8 @@ app.http('executeAction', {
     authLevel: 'anonymous',
     route: 'ontology/actions',
     handler: async (req: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
+        const denied = checkAuth(req);
+        if (denied) return denied;
         try {
             if (!isAuthorized(req)) {
                 return { status: 401, jsonBody: { error: 'Unauthorized: invalid or missing API key' } };

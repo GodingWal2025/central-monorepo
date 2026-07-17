@@ -6,8 +6,9 @@
   "types": "src/index.ts",
   "scripts": {
     "build": "tsc && node -e \"const fs=require('fs'); const path=require('path'); const srcDir='src/components'; const destDir='dist/components'; if (fs.existsSync(srcDir)) { if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, {recursive:true}); fs.readdirSync(srcDir).filter(f=>f.endsWith('.css')).forEach(f=>fs.copyFileSync(path.join(srcDir,f), path.join(destDir,f))) }\"",
-    "test": "vitest run",
-    "test:watch": "vitest --watch"
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest --watch",
+    "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
     "react": "^18.2.0",

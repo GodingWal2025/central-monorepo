@@ -4,13 +4,7 @@ import type { AppointmentObject } from '@gxo/semantic';
 import { OrderCreationModal } from './components/OrderCreationModal';
 import { toast, ToastHost } from './toast';
 
-import { PitBoard } from './PitBoard';
-
 export default function App() {
-  if (window.location.pathname === '/pit-board') {
-    return <PitBoard />;
-  }
-
   const [view, setView] = useState<'dashboard' | 'schedule' | 'gate' | 'admin' | 'staging-map'>('dashboard');
   const [dashboardTab, setDashboardTab] = useState<'Inbound' | 'Outbound' | 'Return'>('Outbound');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -46,7 +40,7 @@ export default function App() {
   useEffect(() => {
     if (view === 'dashboard' || view === 'schedule') {
       fetchDashboardData();
-    } 
+    }
     if (view === 'schedule' || view === 'gate') {
       fetchAppointments();
     }
@@ -90,8 +84,6 @@ export default function App() {
       setLoading(false);
     }
   }
-
-
 
   // Action: Add Appointment
   async function handleAddAppointment(e: React.FormEvent) {
@@ -206,7 +198,7 @@ export default function App() {
       setCheckOutMatches([]);
       setView('dashboard');
     } catch (err: any) {
-      toast(err.message, 'danger');
+      alert(err.message);
     }
   }
 

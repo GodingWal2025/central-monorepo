@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { StagingLaneObject } from '../types/ontology';
+import type { StagingLaneObject } from '../types/ontology';
 import { ontologyClient } from '../client';
 import './StagingLanesMap.css';
 

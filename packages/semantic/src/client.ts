@@ -14,25 +14,33 @@ import type {
 } from './types/ontology';
 
 let _apiBase = '/api';
-let _apiKey: string | null = null;
+let _apiKey: string | undefined;
 
 /** Call once at app startup to set the API base URL for the ontology client */
 export function setOntologyApiBase(url: string): void {
   _apiBase = url || '/api';
 }
 
-/** Optional shared key sent as `x-api-key` on mutating actions. Set at startup
- *  (e.g. from VITE_API_ACTION_KEY) when the backend enforces API_ACTION_KEY. */
-export function setOntologyApiKey(key: string | null): void {
-  _apiKey = key || null;
+/**
+ * Optional: set the shared secret sent as `x-api-key` on every request. Only needed
+ * when the backend has `API_SHARED_SECRET` configured; leave unset for local dev.
+ */
+export function setOntologyApiKey(key: string | undefined): void {
+  _apiKey = key || undefined;
 }
 
 function api(path: string): string {
   return `${_apiBase}${path}`;
 }
 
+function headers(base?: Record<string, string>): Record<string, string> {
+  const h: Record<string, string> = { ...base };
+  if (_apiKey) h['x-api-key'] = _apiKey;
+  return h;
+}
+
 async function get<T>(path: string): Promise<T> {
-  const res = await fetch(api(path));
+  const res = await fetch(api(path), { headers: headers() });
   if (!res.ok) throw new Error(`GET ${path} failed: ${res.status}`);
   return res.json();
 }
@@ -42,7 +50,7 @@ async function post<T = void>(actionType: string, params: object): Promise<T> {
   if (_apiKey) headers['x-api-key'] = _apiKey;
   const res = await fetch(api('/ontology/actions'), {
     method: 'POST',
-    headers,
+    headers: headers({ 'Content-Type': 'application/json' }),
     body: JSON.stringify({ actionType, params }),
   });
   if (!res.ok) {
@@ -149,7 +157,7 @@ export const ontologyClient = {
     return data.objects;
   },
 
-  createEmployee: async (params: Omit<EmployeeObject['properties'], 'photoUrl' | 'siteId'> & { siteId?: string | null }): Promise<EmployeeObject> => {
+  createEmployee: async (params: Partial<EmployeeObject['properties']>): Promise<EmployeeObject> => {
     return post<EmployeeObject>('CreateEmployee', params);
   },
 
@@ -227,11 +235,11 @@ export const ontologyClient = {
     return data.objects;
   },
 
-  createEquipment: async (params: Omit<EquipmentObject['properties'], never>): Promise<EquipmentObject> => {
+  createEquipment: async (params: Partial<EquipmentObject['properties']>): Promise<EquipmentObject> => {
     return post<EquipmentObject>('CreateEquipment', params);
   },
 
-  updateEquipment: async (params: EquipmentObject['properties'] & { id: number }): Promise<EquipmentObject> => {
+  updateEquipment: async (params: Partial<EquipmentObject['properties']> & { id: number }): Promise<EquipmentObject> => {
     return post<EquipmentObject>('UpdateEquipment', params);
   },
 

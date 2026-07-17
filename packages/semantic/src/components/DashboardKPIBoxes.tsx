@@ -1,4 +1,3 @@
-
 export interface DashboardKPI {
   label: string;
   val: string | number;

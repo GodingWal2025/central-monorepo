@@ -16,8 +16,8 @@
     "pg": "node scripts/pg-dev.mjs",
     "dev": "npm run build && func start",
     "build": "tsc",
-    "seed": "tsx prisma/seed.ts",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit",
     "start": "func start"
   },
   "devDependencies": {

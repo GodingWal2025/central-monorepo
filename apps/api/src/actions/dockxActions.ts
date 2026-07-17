@@ -1,4 +1,12 @@
 import { db as prisma } from '../database';
+import { pick, requireId } from './_validation';
+
+// Writable appointment columns (everything except the primary key).
+const APPOINTMENT_FIELDS = [
+  'date', 'time', 'type', 'carrier', 'bolShipmentNo', 'customer', 'productType',
+  'status', 'doorId', 'doorName', 'operatorId', 'operatorName',
+  'checkInTime', 'checkOutTime', 'dwellTime',
+] as const;
 
 // ─── Workflow stage maps (source of truth for stage advancement) ──────────
 const WORKFLOW_STAGES: Record<string, string[]> = {
@@ -109,9 +117,10 @@ export async function completePitTaskAction(params: any) {
 }
 
 export async function updateAppointmentAction(params: any) {
-  const { id, ...data } = params;
-  const appt = await prisma.appointment.update({ where: { id }, data });
-  // When a clerk moves a load into an operator stage, surface its PIT task.
-  if (data.status) await ensureOperatorTask(id, data.status, appt.type);
-  return appt;
+  const id = requireId(params);
+  const data = pick(params, APPOINTMENT_FIELDS);
+  return await prisma.appointment.update({
+    where: { id },
+    data
+  });
 }

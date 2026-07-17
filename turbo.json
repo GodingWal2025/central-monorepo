@@ -7,12 +7,12 @@
       "dependsOn": ["^build"]
     },
     "test": {
-      "outputs": ["coverage/**"],
       "inputs": ["src/**", "__tests__/**", "tsconfig.json"],
-      "dependsOn": ["^build"] 
+      "dependsOn": ["^build"]
     },
     "typecheck": {
-      "dependsOn": ["^typecheck"]
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "tsconfig*.json"]
     },
     "deploy": {
       "dependsOn": ["build", "test"]

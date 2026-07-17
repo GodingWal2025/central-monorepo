@@ -8,9 +8,9 @@ interface Equipment {
   type: string;
   status: string;
   serialNumber: string;
-  lastInspected?: string;
-  assignedToId?: number;
-  notes?: string;
+  lastInspected?: string | null;
+  assignedToId?: number | null;
+  notes?: string | null;
 }
 
 type StatusFilter = 'All' | 'Available' | 'In Use' | 'Under Maintenance' | 'Out of Service';
