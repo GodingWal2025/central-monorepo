@@ -5,6 +5,22 @@ export async function getOntologyHandler(req: HttpRequest, context: InvocationCo
   const objectType = req.params.objectType;
 
   try {
+    if (objectType === 'sites') {
+      const sites = await prisma.site.findMany({ orderBy: { name: 'asc' } });
+      const mappedObjects = sites.map((s: any) => ({
+        id: s.id,
+        objectType: 'Site',
+        properties: {
+          name: s.name,
+          timezone: s.timezone,
+          address: s.address,
+          active: s.active,
+          createdAt: s.createdAt instanceof Date ? s.createdAt.toISOString() : s.createdAt,
+        }
+      }));
+      return { status: 200, jsonBody: { objects: mappedObjects } };
+    }
+
     if (objectType === 'staging-lanes') {
       const lanes = await prisma.stagingLane.findMany();
       // Map tabular database rows into standardized SDK objects
@@ -53,12 +69,12 @@ export async function getOntologyHandler(req: HttpRequest, context: InvocationCo
 
     if (objectType === 'pit-tasks') {
       const tasks = await prisma.pitTask.findMany();
-      return { status: 200, jsonBody: { objects: tasks.map((t: any) => ({ id: t.id, objectType: 'PitTask', properties: { appointmentId: t.appointmentId, operatorName: t.operatorName, status: t.status, startedAt: t.startedAt, completedAt: t.completedAt } })) } };
+      return { status: 200, jsonBody: { objects: tasks.map((t: any) => ({ id: t.id, objectType: 'PitTask', properties: { appointmentId: t.appointmentId, stage: t.stage, operatorName: t.operatorName, status: t.status, type: t.type, startedAt: t.startedAt, completedAt: t.completedAt } })) } };
     }
 
     if (objectType === 'employees') {
       const employees = await prisma.employee.findMany();
-      return { status: 200, jsonBody: { objects: employees.map((e: any) => ({ id: e.id, objectType: 'Employee', properties: { fullName: e.fullName, firstName: e.firstName, lastName: e.lastName, email: e.email, shift: e.shift, jobRole: e.jobRole, hireDate: e.hireDate, active: e.active, photoUrl: e.photoUrl, shirtSize: e.shirtSize, birthday: e.birthday, cwr: e.cwr, phoneNumber: e.phoneNumber, cwid: e.cwid, notes: e.notes } })) } };
+      return { status: 200, jsonBody: { objects: employees.map((e: any) => ({ id: e.id, objectType: 'Employee', properties: { fullName: e.fullName, firstName: e.firstName, lastName: e.lastName, email: e.email, shift: e.shift, jobRole: e.jobRole, hireDate: e.hireDate, active: e.active, photoUrl: e.photoUrl, shirtSize: e.shirtSize, birthday: e.birthday, cwr: e.cwr, phoneNumber: e.phoneNumber, cwid: e.cwid, notes: e.notes, siteId: e.siteId } })) } };
     }
 
     if (objectType === 'skills') {

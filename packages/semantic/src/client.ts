@@ -1,4 +1,5 @@
 import type {
+  SiteObject,
   StagingLaneObject,
   AppointmentObject,
   DoorObject,
@@ -13,10 +14,17 @@ import type {
 } from './types/ontology';
 
 let _apiBase = '/api';
+let _apiKey: string | null = null;
 
 /** Call once at app startup to set the API base URL for the ontology client */
 export function setOntologyApiBase(url: string): void {
   _apiBase = url || '/api';
+}
+
+/** Optional shared key sent as `x-api-key` on mutating actions. Set at startup
+ *  (e.g. from VITE_API_ACTION_KEY) when the backend enforces API_ACTION_KEY. */
+export function setOntologyApiKey(key: string | null): void {
+  _apiKey = key || null;
 }
 
 function api(path: string): string {
@@ -30,9 +38,11 @@ async function get<T>(path: string): Promise<T> {
 }
 
 async function post<T = void>(actionType: string, params: object): Promise<T> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (_apiKey) headers['x-api-key'] = _apiKey;
   const res = await fetch(api('/ontology/actions'), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({ actionType, params }),
   });
   if (!res.ok) {
@@ -44,6 +54,24 @@ async function post<T = void>(actionType: string, params: object): Promise<T> {
 }
 
 export const ontologyClient = {
+  // ─── Sites (shared: Operations-Hub manages, Loadout consumes) ──
+  getSites: async (): Promise<SiteObject[]> => {
+    const data = await get<{ objects: SiteObject[] }>('/ontology/sites');
+    return data.objects;
+  },
+
+  createSite: async (params: { name: string; address?: string; timezone?: string }): Promise<SiteObject> => {
+    return post<SiteObject>('CreateSite', params);
+  },
+
+  updateSite: async (params: { id: string; name?: string; address?: string; active?: boolean }): Promise<SiteObject> => {
+    return post<SiteObject>('UpdateSite', params);
+  },
+
+  deleteSite: async (params: { id: string }): Promise<void> => {
+    await post('DeleteSite', params);
+  },
+
   // ─── Staging Lanes (gxo-loadout) ───────────────────────────────
   getStagingLanes: async (): Promise<StagingLaneObject[]> => {
     const data = await get<{ objects: StagingLaneObject[] }>('/ontology/staging-lanes');
@@ -82,7 +110,7 @@ export const ontologyClient = {
     await post('CheckOutAppointment', params);
   },
 
-  updateAppointment: async (params: { id: number; status?: string; doorName?: string }): Promise<void> => {
+  updateAppointment: async (params: { id: number; status?: string; doorName?: string; pickerName?: string; verifierName?: string }): Promise<void> => {
     await post('UpdateAppointment', params);
   },
 
@@ -103,15 +131,15 @@ export const ontologyClient = {
     return data.objects;
   },
 
-  createPitTask: async (params: { appointmentId: number; type: string }): Promise<void> => {
+  createPitTask: async (params: { appointmentId: number; type: string; stage?: string }): Promise<void> => {
     await post('CreatePitTask', params);
   },
 
-  startPitTask: async (params: { appointmentId: number; operatorName: string; type?: string }): Promise<void> => {
+  startPitTask: async (params: { taskId: number; operatorName: string }): Promise<void> => {
     await post('StartPitTask', params);
   },
 
-  completePitTask: async (params: { appointmentId: number }): Promise<void> => {
+  completePitTask: async (params: { taskId: number }): Promise<void> => {
     await post('CompletePitTask', params);
   },
 
@@ -121,7 +149,7 @@ export const ontologyClient = {
     return data.objects;
   },
 
-  createEmployee: async (params: Omit<EmployeeObject['properties'], 'photoUrl'>): Promise<EmployeeObject> => {
+  createEmployee: async (params: Omit<EmployeeObject['properties'], 'photoUrl' | 'siteId'> & { siteId?: string | null }): Promise<EmployeeObject> => {
     return post<EmployeeObject>('CreateEmployee', params);
   },
 

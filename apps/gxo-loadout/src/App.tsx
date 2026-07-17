@@ -1,8 +1,9 @@
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { getDeviceConfig } from './lib/deviceConfig';
+import { getDeviceConfig, setDeviceConfig } from './lib/deviceConfig';
 import { dbGetPendingSyncCount, dbGetUnuploadedPhotoCount } from '@gxo/semantic';
 import { isAdminAuthenticated } from './services/adminAuth';
+import { fetchActiveSites } from './services/sites';
 
 
 import { HomeRoute } from './routes/HomeRoute';
@@ -15,7 +16,6 @@ import { ScanPalletRoute } from './routes/ScanPalletRoute';
 import { ReviewAndCompleteRoute } from './routes/ReviewAndCompleteRoute';
 import { CaptureReturnsBOLRoute } from './routes/CaptureReturnsBOLRoute';
 import { VerifyReturnsRoute } from './routes/VerifyReturnsRoute';
-import { DashboardRoute } from './routes/DashboardRoute';
 import { AdminRoute } from './routes/AdminRoute';
 import { AdminGateRoute } from './routes/AdminGateRoute';
 import { SetupRoute } from './routes/SetupRoute';
@@ -28,6 +28,31 @@ import { startBackgroundSync } from '@gxo/semantic';
 export default function App() {
   useEffect(() => {
     startBackgroundSync();
+  }, []);
+
+  // Reconcile this device's site with the shared ontology (sites are now
+  // managed in Operations Hub). If the stored siteId predates the ontology
+  // migration, repoint it to the matching ontology site by name — so the
+  // device maps cleanly without a manual re-select.
+  useEffect(() => {
+    const cfg = getDeviceConfig();
+    if (!cfg?.siteId) return;
+    fetchActiveSites()
+      .then((sites) => {
+        if (sites.some((s) => s.id === cfg.siteId)) return; // already aligned
+        const nameLc = (cfg.siteName || '').toLowerCase();
+        const match =
+          sites.find((s) => s.name === cfg.siteName) ||
+          sites.find(
+            (s) =>
+              nameLc &&
+              (s.name.toLowerCase().includes(nameLc) || nameLc.includes(s.name.toLowerCase()))
+          );
+        if (match) {
+          setDeviceConfig({ ...cfg, siteId: match.id, siteName: match.name });
+        }
+      })
+      .catch(() => { /* offline — keep current config */ });
   }, []);
 
   return (
@@ -57,9 +82,8 @@ export default function App() {
           <Route path="/investigation" element={<InvestigationRoute />} />
           <Route path="/staging-lanes" element={<StagingLanesRoute />} />
 
-          {/* Admin area - password gated, dashboard lives inside */}
+          {/* Admin area - password gated */}
           <Route path="/admin" element={<AdminGate><AdminRoute /></AdminGate>} />
-          <Route path="/admin/dashboard" element={<AdminGate><DashboardRoute /></AdminGate>} />
         </Routes>
       </Shell>
     </BrowserRouter>

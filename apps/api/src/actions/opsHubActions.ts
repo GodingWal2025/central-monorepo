@@ -1,5 +1,23 @@
 import { db as prisma } from '../database';
 
+// ─── Sites ───────────────────────────────────────────────────────
+export async function createSiteAction(params: any) {
+  const { name, address, timezone } = params;
+  return await prisma.site.create({
+    data: { name, address: address || null, timezone: timezone || 'UTC' }
+  });
+}
+
+export async function updateSiteAction(params: any) {
+  const { id, ...data } = params;
+  return await prisma.site.update({ where: { id }, data });
+}
+
+export async function deleteSiteAction(params: any) {
+  const { id } = params;
+  return await prisma.site.delete({ where: { id } });
+}
+
 // ─── Employees ───────────────────────────────────────────────────
 export async function createEmployeeAction(params: any) {
   return await prisma.employee.create({ data: params });

@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { StagingLanesMap, ontologyClient, KanbanBoard, KanbanColumnDef, KanbanCardDef, DashboardKPIBoxes, DashboardTabs } from '@gxo/semantic';
+import type { AppointmentObject } from '@gxo/semantic';
+import { OrderCreationModal } from './components/OrderCreationModal';
+import { toast, ToastHost } from './toast';
 
 import { PitBoard } from './PitBoard';
 
@@ -12,13 +15,14 @@ export default function App() {
   const [dashboardTab, setDashboardTab] = useState<'Inbound' | 'Outbound' | 'Return'>('Outbound');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [stats, setStats] = useState({ total: 0, checked_in: 0, completed: 0, late: 0, missed: 0, ib_count: 0, ob_count: 0 });
-  const [appointments, setAppointments] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<AppointmentObject[]>([]);
+  const [orderCreationAppt, setOrderCreationAppt] = useState<AppointmentObject | null>(null);
   const [metadata, setMetadata] = useState<any>({ customers: [], carriers: [], productTypes: [], doors: [], operators: [] });
-  const [pitTasks, setPitTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Forms
   const [showAddForm, setShowAddForm] = useState(false);
+  const [addLoadOpen, setAddLoadOpen] = useState(false);
   const [newAppt, setNewAppt] = useState({ date: '', time: '', type: 'Inbound', carrierId: '', bol: '', customerId: '', productTypeId: '' });
   const [checkInSearch, setCheckInSearch] = useState('');
   const [checkInMatches, setCheckInMatches] = useState<any[]>([]);
@@ -45,8 +49,6 @@ export default function App() {
     } 
     if (view === 'schedule' || view === 'gate') {
       fetchAppointments();
-    } else if (view === 'pit-board') {
-      fetchPitTasks();
     }
   }, [view]);
 
@@ -89,38 +91,13 @@ export default function App() {
     }
   }
 
-  async function fetchPitTasks() {
-    setLoading(true);
-    try {
-      const tasks = await ontologyClient.getPitTasks();
-      // Join with appointments
-      const appts = await ontologyClient.getAppointments();
-      const enrichedTasks = tasks.map(t => {
-        const appt = appts.find(a => a.id === t.properties.appointmentId);
-        return {
-          appt_id: t.properties.appointmentId,
-          bol_shipment_no: appt?.properties.bolShipmentNo || 'Unknown',
-          carrier: appt?.properties.carrier || 'Unknown',
-          door_name: appt?.properties.doorName || null,
-          pit_status: t.properties.status,
-          operator_name: t.properties.operatorName
-        };
-      });
-      setPitTasks(enrichedTasks);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
 
 
   // Action: Add Appointment
   async function handleAddAppointment(e: React.FormEvent) {
     e.preventDefault();
     try {
-      await ontologyClient.createAppointment({
+      const created = await ontologyClient.createAppointment({
         date: newAppt.date,
         time: newAppt.time,
         type: newAppt.type,
@@ -129,13 +106,35 @@ export default function App() {
         customer: metadata.customers.find((c: any) => c.id === parseInt(newAppt.customerId))?.name || '',
         productType: metadata.productTypes.find((p: any) => p.id === parseInt(newAppt.productTypeId))?.name || ''
       });
-      alert('Appointment created successfully!');
+
+      // When a clerk adds a load from the board, create a locked PIT task so it
+      // surfaces on the PIT board immediately (operators can't start it until the
+      // clerk releases it to "Picking & Verification").
+      if (addLoadOpen && created?.id) {
+        const firstStage = newAppt.type === 'Inbound' || newAppt.type === 'Return' ? 'Unload' : 'Picking & Verification';
+        const pitType = newAppt.type === 'Outbound' ? 'Pick' : newAppt.type === 'Return' ? 'Return' : 'Inbound';
+        try {
+          await ontologyClient.createPitTask({ appointmentId: created.id, type: pitType, stage: firstStage });
+        } catch (e) { /* task may already exist */ }
+      }
+
+      toast('Load created', 'success');
       setNewAppt({ date: '', time: '', type: 'Inbound', carrierId: '', bol: '', customerId: '', productTypeId: '' });
       setShowAddForm(false);
+      setAddLoadOpen(false);
       fetchAppointments();
+      fetchDashboardData();
     } catch (err: any) {
-      alert(err.message);
+      toast(err.message, 'danger');
     }
+  }
+
+  // Open the "add load" modal for the current dashboard workflow's first stage
+  function handleAddCard(_columnId: string) {
+    const today = new Date().toISOString().slice(0, 10);
+    const now = new Date().toTimeString().slice(0, 5);
+    setNewAppt({ date: today, time: now, type: dashboardTab, carrierId: '', bol: '', customerId: '', productTypeId: '' });
+    setAddLoadOpen(true);
   }
 
   // Action: Search Check-In
@@ -171,13 +170,13 @@ export default function App() {
         type: checkInForm.pitTaskType
       });
 
-      alert('Driver checked in successfully!');
+      toast('Driver checked in', 'success');
       setSelectedCheckIn(null);
       setCheckInSearch('');
       setCheckInMatches([]);
       setView('dashboard');
     } catch (err: any) {
-      alert(err.message);
+      toast(err.message, 'danger');
     }
   }
 
@@ -202,45 +201,20 @@ export default function App() {
     if (!confirm('Are you sure you want to check out this driver?')) return;
     try {
       await ontologyClient.checkOutAppointment({ appointmentId: apptId });
-      alert('Driver checked out successfully!');
+      toast('Driver checked out', 'success');
       setCheckOutSearch('');
       setCheckOutMatches([]);
       setView('dashboard');
     } catch (err: any) {
-      alert(err.message);
-    }
-  }
-
-  // Action: Start PIT Task
-  async function handleStartPitTask(apptId: number, operatorName: string) {
-    if (!operatorName.trim()) {
-      alert('Please enter operator name');
-      return;
-    }
-    try {
-      await ontologyClient.startPitTask({ appointmentId: apptId, operatorName });
-      fetchPitTasks();
-    } catch (err: any) {
-      alert(err.message);
-    }
-  }
-
-  // Action: Complete PIT Task
-  async function handleCompletePitTask(apptId: number) {
-    try {
-      await ontologyClient.completePitTask({ appointmentId: apptId });
-      fetchPitTasks();
-    } catch (err: any) {
-      alert(err.message);
+      toast(err.message, 'danger');
     }
   }
 
   // Kanban setup
   const workflows: Record<string, KanbanColumnDef[]> = {
     Outbound: [
-      { id: 'Order Creation', title: 'ORDER CREATION', colorTheme: 'yellow' },
-      { id: 'Picking', title: 'PICKING', colorTheme: 'blue' },
-      { id: 'Verification', title: 'VERIFICATION', colorTheme: 'purple' },
+      { id: 'Order Creation', title: 'ORDER CREATION', colorTheme: 'yellow', canAdd: true },
+      { id: 'Picking & Verification', title: 'PICKING & VERIFICATION', colorTheme: 'blue' },
       { id: 'Manifest', title: 'MANIFEST', colorTheme: 'gray' },
       { id: 'Final BOL', title: 'FINAL BOL', colorTheme: 'gray' },
       { id: 'Lane Audit', title: 'LANE AUDIT', colorTheme: 'red' },
@@ -248,13 +222,13 @@ export default function App() {
       { id: 'Ship/GI', title: 'SHIP/GI', colorTheme: 'green' }
     ],
     Inbound: [
-      { id: 'Unload', title: 'UNLOAD', colorTheme: 'blue' },
+      { id: 'Unload', title: 'UNLOAD', colorTheme: 'blue', canAdd: true },
       { id: 'Receive/PGR', title: 'RECEIVE/PGR', colorTheme: 'yellow' },
       { id: 'Verify', title: 'VERIFY', colorTheme: 'purple' },
       { id: 'Putaway', title: 'PUTAWAY', colorTheme: 'green' }
     ],
     Return: [
-      { id: 'Unload', title: 'UNLOAD', colorTheme: 'blue' },
+      { id: 'Unload', title: 'UNLOAD', colorTheme: 'blue', canAdd: true },
       { id: 'Verify', title: 'VERIFY', colorTheme: 'purple' },
       { id: 'PGR', title: 'PGR', colorTheme: 'gray' },
       { id: 'Receive', title: 'RECEIVE', colorTheme: 'yellow' },
@@ -273,14 +247,23 @@ export default function App() {
       colId = kanbanColumns[0].id;
     }
 
+    const tags: { label: string; color: string }[] = [
+      { label: appt.properties.type, color: appt.properties.type === 'Inbound' ? '#3b82f6' : '#10b981' }
+    ];
+    if (appt.properties.pickerName) {
+      tags.push({ label: `Picker: ${appt.properties.pickerName}`, color: '#3b82f6' }); // Blue
+    }
+    if (appt.properties.verifierName) {
+      tags.push({ label: `Verifier: ${appt.properties.verifierName}`, color: '#8b5cf6' }); // Purple
+    }
+
     return {
       id: appt.id.toString(),
       columnId: colId,
       title: `#${appt.properties.bolShipmentNo}`,
       subtitle: `Carrier: ${appt.properties.carrier} | Customer: ${appt.properties.customer}`,
-      statusTags: [
-        { label: appt.properties.type, color: appt.properties.type === 'Inbound' ? '#3b82f6' : '#10b981' }
-      ]
+      statusTags: tags,
+      onClick: colId === 'Order Creation' ? () => setOrderCreationAppt(appt) : undefined
     };
   });
 
@@ -313,6 +296,7 @@ export default function App() {
   const handleMoveCard = async (cardId: string, toColumnId: string) => {
     setAppointments(prev => prev.map(a => a.id.toString() === cardId ? { ...a, properties: { ...a.properties, status: toColumnId } } : a));
     try {
+      // The API auto-creates the PIT task when a load enters an operator stage.
       await ontologyClient.updateAppointment({ id: parseInt(cardId), status: toColumnId });
     } catch (err) {
       console.error(err);
@@ -322,6 +306,7 @@ export default function App() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
+      <ToastHost />
       {/* Sidebar Navigation */}
       <aside className="sidebar py-4" style={{ 
         width: sidebarCollapsed ? 64 : 280, 
@@ -431,7 +416,84 @@ export default function App() {
             {/* KPI statistics cards based on Kanban columns */}
             <DashboardKPIBoxes kpis={dashboardKPIs} />
 
-            <DashboardTabs 
+            {orderCreationAppt && (
+              <OrderCreationModal 
+                appt={orderCreationAppt}
+                onClose={() => setOrderCreationAppt(null)}
+                onSave={async () => {
+                  try {
+                    // Releasing the order to Picking & Verification; the API
+                    // auto-creates the Pick task for this stage.
+                    await ontologyClient.updateAppointment({
+                      id: orderCreationAppt.id,
+                      status: 'Picking & Verification'
+                    });
+
+                    setAppointments(prev => prev.map(a =>
+                      a.id === orderCreationAppt.id ? { ...a, properties: { ...a.properties, status: 'Picking & Verification' } } : a
+                    ));
+                    setOrderCreationAppt(null);
+                  } catch (e) {
+                    console.error("Failed to release order:", e);
+                  }
+                }}
+              />
+            )}
+
+            {addLoadOpen && (
+              <div
+                className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                style={{ background: 'rgba(0,0,0,0.4)', zIndex: 1050 }}
+                onClick={() => setAddLoadOpen(false)}
+              >
+                <div className="card border-0 shadow-lg p-4" style={{ background: 'var(--surface)', maxWidth: 520, width: '92%' }} onClick={e => e.stopPropagation()}>
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h4 className="font-serif fw-bold mb-0">New {dashboardTab} Load</h4>
+                    <button className="btn-close" onClick={() => setAddLoadOpen(false)}></button>
+                  </div>
+                  <form onSubmit={handleAddAppointment}>
+                    <div className="row g-3 mb-3">
+                      <div className="col-6">
+                        <label className="form-label small text-uppercase text-muted fw-bold">Date</label>
+                        <input type="date" required className="form-control" value={newAppt.date} onChange={e => setNewAppt({ ...newAppt, date: e.target.value })} />
+                      </div>
+                      <div className="col-6">
+                        <label className="form-label small text-uppercase text-muted fw-bold">Time</label>
+                        <input type="time" required className="form-control" value={newAppt.time} onChange={e => setNewAppt({ ...newAppt, time: e.target.value })} />
+                      </div>
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label small text-uppercase text-muted fw-bold">Carrier</label>
+                      <select required className="form-select" value={newAppt.carrierId} onChange={e => setNewAppt({ ...newAppt, carrierId: e.target.value })}>
+                        <option value="">Select Carrier...</option>
+                        {metadata.carriers.map((c: any) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                      </select>
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label small text-uppercase text-muted fw-bold">BOL / Shipment Number</label>
+                      <input type="text" required placeholder="Type BOL number..." className="form-control" value={newAppt.bol} onChange={e => setNewAppt({ ...newAppt, bol: e.target.value })} />
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label small text-uppercase text-muted fw-bold">Customer</label>
+                      <select required className="form-select" value={newAppt.customerId} onChange={e => setNewAppt({ ...newAppt, customerId: e.target.value })}>
+                        <option value="">Select Customer...</option>
+                        {metadata.customers.map((c: any) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                      </select>
+                    </div>
+                    <div className="mb-4">
+                      <label className="form-label small text-uppercase text-muted fw-bold">Product Type</label>
+                      <select required className="form-select" value={newAppt.productTypeId} onChange={e => setNewAppt({ ...newAppt, productTypeId: e.target.value })}>
+                        <option value="">Select Product...</option>
+                        {metadata.productTypes.map((p: any) => (<option key={p.id} value={p.id}>{p.name}</option>))}
+                      </select>
+                    </div>
+                    <button type="submit" className="btn btn-primary w-100 py-2">Create Load</button>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            <DashboardTabs
               tabs={[
                 { id: 'Outbound', label: 'Outbound' },
                 { id: 'Inbound', label: 'Inbound' },
@@ -443,10 +505,11 @@ export default function App() {
 
             {/* Kanban Board */}
             <div className="card border-0 p-4 shadow-sm" style={{ background: 'var(--surface)' }}>
-              <KanbanBoard 
-                columns={kanbanColumns} 
-                cards={kanbanCards} 
-                onMoveCard={handleMoveCard} 
+              <KanbanBoard
+                columns={kanbanColumns}
+                cards={kanbanCards}
+                onMoveCard={handleMoveCard}
+                onAddCard={handleAddCard}
               />
             </div>
           </div>

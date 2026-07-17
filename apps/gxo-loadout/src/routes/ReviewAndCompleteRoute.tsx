@@ -4,7 +4,38 @@ import { dbGetInspection } from '@gxo/semantic';
 import { useInspection } from '@gxo/semantic';
 import { InspectorPicker } from '@gxo/semantic';
 import { MultiPhotoCapture } from '@gxo/semantic';
+import { ontologyClient, WORKFLOW_STAGES } from '@gxo/semantic';
 import type { Inspection } from '@gxo/semantic';
+
+/** When an outbound inspection started from a dock load completes, complete the
+ *  corresponding PIT task and advance the appointment to the next workflow stage. */
+async function advanceDockWorkflow(inspection: Inspection) {
+  const apptId = inspection.sourceAppointmentId;
+  if (!apptId) return;
+  try {
+    const [appts, tasks] = await Promise.all([
+      ontologyClient.getAppointments(),
+      ontologyClient.getPitTasks(),
+    ]);
+    const appt = appts.find((a) => a.id === apptId);
+    // Prefer completing the operator task at the load's current stage — that
+    // advances the appointment server-side.
+    const task =
+      tasks.find((t) => t.properties.appointmentId === apptId && !!appt && t.properties.stage === appt.properties.status) ||
+      tasks.find((t) => t.properties.appointmentId === apptId && t.properties.status !== 'Completed');
+    if (task) {
+      await ontologyClient.completePitTask({ taskId: task.id });
+    } else if (appt) {
+      const stages = WORKFLOW_STAGES[appt.properties.type] || WORKFLOW_STAGES.Outbound;
+      const idx = stages.indexOf(appt.properties.status);
+      if (idx !== -1 && idx < stages.length - 1) {
+        await ontologyClient.updateAppointment({ id: apptId, status: stages[idx + 1] });
+      }
+    }
+  } catch {
+    // Best-effort; if offline the dock board can be advanced manually.
+  }
+}
 
 export function ReviewAndCompleteRoute() {
   const { id } = useParams<{ id: string }>();
@@ -60,6 +91,9 @@ function ReviewInner({ initial }: { initial: Inspection }) {
     if (!confirmed) return;
     dispatch({ type: 'SET_COMPLETED_BY', name: completedBy });
     dispatch({ type: 'MARK_COMPLETE' });
+    // Close the loop with the dock board: complete the PIT task and advance the
+    // appointment to the next workflow stage (best-effort; offline-safe).
+    advanceDockWorkflow(inspection);
     setTimeout(() => navigate('/'), 100);
   };
 

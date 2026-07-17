@@ -4,7 +4,8 @@ import {
     createAppointmentAction, checkInAppointmentAction, checkOutAppointmentAction,
     updateAppointmentAction, startPitTaskAction, completePitTaskAction, createPitTaskAction 
 } from './dockxActions';
-import { 
+import {
+    createSiteAction, updateSiteAction, deleteSiteAction,
     createEmployeeAction, updateEmployeeAction,
     createSkillAction, deleteSkillAction,
     createRatingAction, updateRatingAction,
@@ -28,6 +29,9 @@ export const actionRegistry: Record<string, (params: any) => Promise<any>> = {
     "CreatePitTask": createPitTaskAction,
     
     // Operations-Hub Actions
+    "CreateSite": createSiteAction,
+    "UpdateSite": updateSiteAction,
+    "DeleteSite": deleteSiteAction,
     "CreateEmployee": createEmployeeAction,
     "UpdateEmployee": updateEmployeeAction,
     "CreateSkill": createSkillAction,

@@ -1,97 +1,42 @@
-import { generateId } from '@gxo/semantic';
-// Sites service - admin-managed list.
+// Sites service.
 //
-// Starts empty after install. Admin adds sites via the Sites tab.
+// Sites are now managed centrally in the Operations Hub app and shared via the
+// ontology API. This module is a thin async adapter that maps the ontology
+// SiteObject into the local Site shape the Loadout UI expects.
 
-import type { Site } from '@gxo/semantic';
+import { ontologyClient } from '@gxo/semantic';
+import type { Site, SiteObject } from '@gxo/semantic';
 
-const KEY = 'loadout.sites';
-
-function loadAll(): Site[] {
-  const raw = localStorage.getItem(KEY);
-  if (!raw) return [];
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return [];
-  }
+function toSite(o: SiteObject): Site {
+  return {
+    id: o.id,
+    name: o.properties.name,
+    address: o.properties.address || undefined,
+    active: o.properties.active,
+    createdAt: o.properties.createdAt,
+  };
 }
 
-function saveAll(sites: Site[]): void {
-  localStorage.setItem(KEY, JSON.stringify(sites));
-}
-
-export function listActiveSites(): Site[] {
-  return loadAll()
-    .filter((s) => s.active)
+export async function fetchActiveSites(): Promise<Site[]> {
+  const objs = await ontologyClient.getSites();
+  return objs
+    .filter((o) => o.properties.active)
+    .map(toSite)
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export function listAllSites(): Site[] {
-  return loadAll().sort((a, b) => a.name.localeCompare(b.name));
-}
-
-export function findSite(siteId: string): Site | undefined {
-  return loadAll().find((s) => s.id === siteId);
-}
-
-export function addSite(name: string, address?: string): Site {
-  const sites = loadAll();
-  const id = name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 32) || generateId().slice(0, 8);
-
-  let finalId = id;
-  let suffix = 1;
-  while (sites.some((s) => s.id === finalId)) {
-    suffix++;
-    finalId = `${id}-${suffix}`;
-  }
-
-  const site: Site = {
-    id: finalId,
+/** Convenience for onboarding — creates a site in the shared ontology. */
+export async function createSite(name: string, address?: string): Promise<Site> {
+  const created: any = await ontologyClient.createSite({
     name: name.trim(),
     address: address?.trim() || undefined,
-    active: true,
-    createdAt: new Date().toISOString(),
+  });
+  // The API returns the flat Prisma row (not a SiteObject).
+  return {
+    id: created.id,
+    name: created.name,
+    address: created.address || undefined,
+    active: created.active ?? true,
+    createdAt: created.createdAt,
   };
-  sites.push(site);
-  saveAll(sites);
-  return site;
-}
-
-export function updateSite(id: string, patch: Partial<Site>): void {
-  const sites = loadAll();
-  const idx = sites.findIndex((s) => s.id === id);
-  if (idx !== -1) {
-    sites[idx] = { ...sites[idx], ...patch };
-    saveAll(sites);
-  }
-}
-
-export function deleteSite(id: string): { ok: boolean; reason?: string } {
-  const sites = loadAll();
-  const target = sites.find((s) => s.id === id);
-  if (!target) return { ok: false, reason: 'Site not found' };
-
-  // Don't allow deleting the currently-assigned site
-  const deviceConfig = localStorage.getItem('inspection.device.config');
-  if (deviceConfig) {
-    try {
-      const parsed = JSON.parse(deviceConfig);
-      if (parsed.siteId === id) {
-        return {
-          ok: false,
-          reason: 'This site is currently the selected site. Reassign the device to a different site before deleting.',
-        };
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  saveAll(sites.filter((s) => s.id !== id));
-  return { ok: true };
 }

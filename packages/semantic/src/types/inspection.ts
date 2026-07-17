@@ -258,6 +258,12 @@ export interface Inspection {
   currentInspector?: string; // changes during handoff
   handoffLog?: HandoffEntry[];
 
+  // Link back to the DockX dock appointment this inspection was started from
+  // (set when an inspector picks a "ready for inspection" load). Used to advance
+  // the dock workflow when the inspection completes.
+  sourceAppointmentId?: number;
+  sourceBol?: string;
+
   stagingLocation?: string;
 
   picklist: Picklist;

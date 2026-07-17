@@ -20,3 +20,6 @@ local.settings.json
 
 # Scratch / temp directories
 scratch/
+
+# Embedded Postgres data (local dev)
+apps/api/.pgdata/

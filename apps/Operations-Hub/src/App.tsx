@@ -17,6 +17,7 @@ import { ContactsPage } from "./pages/ContactsPage";
 import { EquipmentsPage } from "./pages/EquipmentsPage";
 import { InspectionsPage } from "./pages/InspectionsPage";
 import { InventoryPage } from "./pages/InventoryPage";
+import { SitesPage } from "./pages/SitesPage";
 
 const pageTitle = (view: Navigation): string => {
   switch (view.name) {
@@ -30,6 +31,7 @@ const pageTitle = (view: Navigation): string => {
     case 'equipments': return 'Equipment Roster';
     case 'inspections': return 'PIT Inspections';
     case 'inventory': return 'Inventory';
+    case 'sites': return 'Sites';
     default: return '';
   }
 };
@@ -46,7 +48,17 @@ export default function App() {
     saveEquipment, removeEquipment,
   } = useData();
 
-  const [view, setView] = useState<Navigation>({ name: 'home' });
+  const [view, setView] = useState<Navigation>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const viewParam = params.get('view');
+      if (viewParam === 'inspections') {
+        const eqId = params.get('equipmentId');
+        return { name: 'inspections', defaultEquipmentId: eqId || undefined };
+      }
+    }
+    return { name: 'home' };
+  });
   const [empFormOpen, setEmpFormOpen] = useState(false);
   const [editingEmp, setEditingEmp] = useState<Employee | null>(null);
   const [skillFormOpen, setSkillFormOpen] = useState(false);
@@ -120,7 +132,7 @@ export default function App() {
     <div className="min-h-screen bg-[#FAF7F2] text-stone-900">
       <div className="flex min-h-screen">
         {/* Desktop sidebar */}
-        <aside className="w-64 border-r border-stone-200 bg-white px-5 py-7 flex-col flex-shrink-0 hidden md:flex">
+        <aside className="w-72 border-r border-stone-200 bg-white px-5 py-7 flex-col flex-shrink-0 hidden md:flex">
           <SidebarContent view={view} navigate={navigate} activeCount={activeCount} />
         </aside>
 
@@ -221,11 +233,15 @@ export default function App() {
             )}
 
             {view.name === 'inspections' && (
-              <InspectionsPage equipments={equipments} />
+              <InspectionsPage equipments={equipments} defaultEquipmentId={view.defaultEquipmentId} />
             )}
 
             {view.name === 'inventory' && (
               <InventoryPage equipments={equipments} />
+            )}
+
+            {view.name === 'sites' && (
+              <SitesPage />
             )}
           </main>
         </div>

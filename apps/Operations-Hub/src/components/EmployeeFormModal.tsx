@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { X, Mail, Calendar, Phone, IdCard, Cake, Shirt, FileText } from "lucide-react";
+import { X, Mail, Calendar, Phone, IdCard, Cake, Shirt, FileText, MapPin } from "lucide-react";
 import { Field } from "./UI";
 import type { Employee } from "../types";
 import { isPitRole } from "../types";
+import { ontologyClient } from "@gxo/semantic";
+import type { SiteObject } from "@gxo/semantic";
 
 interface Props {
   open: boolean;
@@ -20,6 +22,7 @@ interface FormState {
   jobRole: string;
   hireDate: string;
   active: boolean;
+  siteId?: string;
   shirtSize?: string;
   birthday?: string;
   cwr?: boolean;
@@ -38,6 +41,7 @@ const emptyForm = (): FormState => ({
   jobRole: '',
   hireDate: new Date().toISOString().split('T')[0],
   active: true,
+  siteId: '',
   shirtSize: '',
   birthday: '',
   cwr: false,
@@ -49,6 +53,13 @@ const emptyForm = (): FormState => ({
 export const EmployeeFormModal = ({ open, onClose, onSave, employee, jobRoles }: Props) => {
   const isEdit = !!employee;
   const [form, setForm] = useState<FormState>(emptyForm());
+  const [sites, setSites] = useState<SiteObject[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      ontologyClient.getSites().then(s => setSites(s.filter(x => x.properties.active))).catch(() => setSites([]));
+    }
+  }, [open]);
 
   useEffect(() => {
     if (employee) {
@@ -60,6 +71,7 @@ export const EmployeeFormModal = ({ open, onClose, onSave, employee, jobRoles }:
         jobRole: employee.jobRole,
         hireDate: employee.hireDate,
         active: employee.active,
+        siteId: employee.siteId ?? '',
         shirtSize: employee.shirtSize,
         birthday: employee.birthday ? employee.birthday.split('T')[0] : '',
         cwr: employee.cwr,
@@ -89,6 +101,7 @@ export const EmployeeFormModal = ({ open, onClose, onSave, employee, jobRoles }:
         photoUrl: employee?.photoUrl ?? '', // preserve existing photo on edit
         shift: form.shift as '1st' | '2nd',
         jobRole: form.jobRole as Employee['jobRole'],
+        siteId: form.siteId || null,
       },
       employee?.id
     );
@@ -242,6 +255,20 @@ export const EmployeeFormModal = ({ open, onClose, onSave, employee, jobRoles }:
               </div>
             </Field>
           </div>
+
+          {/* Site */}
+          <Field label="Site" hint="Which facility this employee works at">
+            <div className="relative">
+              <MapPin size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+              <select
+                value={form.siteId}
+                onChange={e => setForm(f => ({ ...f, siteId: e.target.value }))}
+                className="w-full pl-11 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:outline-none focus:border-stone-900 focus:bg-white transition">
+                <option value="">Unassigned</option>
+                {sites.map(s => <option key={s.id} value={s.id}>{s.properties.name}</option>)}
+              </select>
+            </div>
+          </Field>
 
           {/* Shirt size */}
           <Field label="Shirt size">
