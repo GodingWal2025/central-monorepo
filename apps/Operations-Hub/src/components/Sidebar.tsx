@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { Home, Users, BookOpen, GraduationCap, BookUser, Building2, X, Wrench, ChevronDown, ChevronRight, Package, ClipboardCheck } from "lucide-react";
+import { Home, Users, BookOpen, GraduationCap, BookUser, Building2, X, Wrench, ChevronDown, ChevronRight, Package, ClipboardCheck, MapPin } from "lucide-react";
 import type { Navigation } from "../types";
 
 
@@ -41,6 +41,9 @@ export const SidebarContent = ({ view, navigate, activeCount, onClose }: Sidebar
   const [appsOpen, setAppsOpen] = useState(
     view.name === 'inventory'
   );
+  const [skillsOpen, setSkillsOpen] = useState(
+    view.name === 'library' || view.name === 'skill' || view.name === 'record'
+  );
 
   return (
     <>
@@ -74,9 +77,9 @@ export const SidebarContent = ({ view, navigate, activeCount, onClose }: Sidebar
       <div className="mb-2 px-3">
         <button
           onClick={() => setAssetsOpen(!assetsOpen)}
-          className="w-full flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-stone-400 font-semibold hover:text-stone-600 transition"
+          className="w-full flex items-center gap-2 py-2 px-2 -mx-2 text-xs uppercase tracking-[0.15em] text-stone-500 font-semibold rounded-lg hover:bg-stone-100 hover:text-stone-800 active:bg-stone-200 transition"
         >
-          {assetsOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+          {assetsOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
           Assets
         </button>
       </div>
@@ -99,9 +102,9 @@ export const SidebarContent = ({ view, navigate, activeCount, onClose }: Sidebar
       <div className="mb-2 px-3">
         <button
           onClick={() => setAppsOpen(!appsOpen)}
-          className="w-full flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-stone-400 font-semibold hover:text-stone-600 transition"
+          className="w-full flex items-center gap-2 py-2 px-2 -mx-2 text-xs uppercase tracking-[0.15em] text-stone-500 font-semibold rounded-lg hover:bg-stone-100 hover:text-stone-800 active:bg-stone-200 transition"
         >
-          {appsOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+          {appsOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
           Apps
         </button>
       </div>
@@ -113,17 +116,26 @@ export const SidebarContent = ({ view, navigate, activeCount, onClose }: Sidebar
         </nav>
       )}
 
+      {/* Collapsible Skills folder */}
       <div className="mb-2 px-3">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-stone-400 font-semibold">Skills</p>
+        <button
+          onClick={() => setSkillsOpen(!skillsOpen)}
+          className="w-full flex items-center gap-2 py-2 px-2 -mx-2 text-xs uppercase tracking-[0.15em] text-stone-500 font-semibold rounded-lg hover:bg-stone-100 hover:text-stone-800 active:bg-stone-200 transition"
+        >
+          {skillsOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+          Skills
+        </button>
       </div>
-      <nav className="space-y-1 mb-6">
-        <NavItem icon={BookOpen} label="Skills Library"
-          active={view.name === 'library' || view.name === 'skill'}
-          onClick={() => { navigate({ name: 'library' }); onClose?.(); }} />
-        <NavItem icon={GraduationCap} label="Record Assessment"
-          active={view.name === 'record'}
-          onClick={() => { navigate({ name: 'record' }); onClose?.(); }} />
-      </nav>
+      {skillsOpen && (
+        <nav className="space-y-1 mb-6">
+          <NavItem icon={BookOpen} label="Skills Library"
+            active={view.name === 'library' || view.name === 'skill'}
+            onClick={() => { navigate({ name: 'library' }); onClose?.(); }} />
+          <NavItem icon={GraduationCap} label="Record Assessment"
+            active={view.name === 'record'}
+            onClick={() => { navigate({ name: 'record' }); onClose?.(); }} />
+        </nav>
+      )}
 
       <div className="mb-2 px-3">
         <p className="text-[10px] uppercase tracking-[0.2em] text-stone-400 font-semibold">Directory</p>
@@ -132,6 +144,9 @@ export const SidebarContent = ({ view, navigate, activeCount, onClose }: Sidebar
         <NavItem icon={BookUser} label="Contacts"
           active={view.name === 'contacts'}
           onClick={() => { navigate({ name: 'contacts' }); onClose?.(); }} />
+        <NavItem icon={MapPin} label="Sites"
+          active={view.name === 'sites'}
+          onClick={() => { navigate({ name: 'sites' }); onClose?.(); }} />
       </nav>
 
       <div className="border-t border-stone-100 pt-5 px-2">

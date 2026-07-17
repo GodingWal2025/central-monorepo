@@ -1,12 +1,12 @@
 import { useNavigate, Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { setDeviceConfig } from '../lib/deviceConfig';
-import { listActiveSites, addSite } from '../services/sites';
+import { fetchActiveSites, createSite as createSiteRecord } from '../services/sites';
 import type { Site } from '@gxo/semantic';
 
 export function SetupRoute() {
   const navigate = useNavigate();
-  const [sites, setSites] = useState<Site[]>(() => listActiveSites());
+  const [sites, setSites] = useState<Site[]>([]);
   const [siteId, setSiteId] = useState('');
   const [name, setName] = useState('');
 
@@ -14,10 +14,14 @@ export function SetupRoute() {
   const [newSiteName, setNewSiteName] = useState('');
   const [newSiteAddress, setNewSiteAddress] = useState('');
 
-  const createSite = () => {
+  useEffect(() => {
+    fetchActiveSites().then(setSites).catch(() => setSites([]));
+  }, []);
+
+  const createSite = async () => {
     if (!newSiteName.trim()) return;
-    const created = addSite(newSiteName.trim(), newSiteAddress.trim() || undefined);
-    setSites(listActiveSites());
+    const created = await createSiteRecord(newSiteName.trim(), newSiteAddress.trim() || undefined);
+    setSites(await fetchActiveSites());
     setSiteId(created.id);
     setNewSiteName('');
     setNewSiteAddress('');

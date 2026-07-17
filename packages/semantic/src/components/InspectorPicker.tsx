@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import type { Inspector } from '../types/inspection';
-import { listInspectorsForSite } from '../services/inspectors';
+import { ontologyClient } from '../client';
 
 interface Props {
+  /** Kept for API compatibility; inspectors are now sourced from Operations Hub employees. */
   siteId: string;
   value: string;
   placeholder?: string;
@@ -10,24 +10,35 @@ interface Props {
 }
 
 /**
- * Dropdown of inspector names for the current site.
+ * Dropdown of inspector names.
  *
- * Pulls the list from localStorage (seeded with defaults, admin-editable).
- * Selecting a name simply sets a string field — there's no app-level session
- * or auth attached to it.
+ * Names are pulled from the Operations Hub employee roster (active employees)
+ * via the ontology API — the single source of truth for people across apps.
  */
-export function InspectorPicker({ siteId, value, placeholder, onChange }: Props) {
-  const [inspectors, setInspectors] = useState<Inspector[]>([]);
+export function InspectorPicker({ value, placeholder, onChange }: Props) {
+  const [names, setNames] = useState<string[]>([]);
 
   useEffect(() => {
-    setInspectors(listInspectorsForSite(siteId));
-  }, [siteId]);
+    let cancelled = false;
+    ontologyClient.getEmployees()
+      .then((emps) => {
+        if (cancelled) return;
+        setNames(
+          emps
+            .filter((e) => e.properties.active)
+            .map((e) => e.properties.fullName)
+            .sort((a, b) => a.localeCompare(b))
+        );
+      })
+      .catch(() => { if (!cancelled) setNames([]); });
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <select value={value} onChange={(e) => onChange(e.target.value)}>
       <option value="">{placeholder || 'Select inspector…'}</option>
-      {inspectors.map((i) => (
-        <option key={i.id} value={i.name}>{i.name}</option>
+      {names.map((n) => (
+        <option key={n} value={n}>{n}</option>
       ))}
     </select>
   );

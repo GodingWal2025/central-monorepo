@@ -5,6 +5,8 @@ export interface SiteObject {
         name: string;
         timezone: string;
         address: string | null;
+        active: boolean;
+        createdAt: string;
     };
 }
 
@@ -75,18 +77,36 @@ export interface AssignLaneActionParams {
 
 // ─── DockX Domain ────────────────────────────────────────────────
 
+/** The dock workflow direction. */
+export type AppointmentType = 'Inbound' | 'Outbound' | 'Return';
+
+/** Ordered workflow stages per direction — the single source of truth for the
+ *  kanban board, the PIT board gating, and stage advancement. */
+export const WORKFLOW_STAGES: Record<AppointmentType, string[]> = {
+    Outbound: ['Order Creation', 'Picking & Verification', 'Manifest', 'Final BOL', 'Lane Audit', 'Load', 'Ship/GI'],
+    Inbound: ['Unload', 'Receive/PGR', 'Verify', 'Putaway'],
+    Return: ['Unload', 'Verify', 'PGR', 'Receive', 'Putaway'],
+};
+
+/** Gate lifecycle statuses that exist before a load enters its workflow. */
+export type GateStatus = 'Scheduled' | 'Checked In' | 'Completed' | 'Late' | 'Missed';
+
+/** An appointment's status is either a gate status or a workflow stage (free-form
+ *  string because it spans three workflows). */
+export type AppointmentStatus = GateStatus | string;
+
 export interface AppointmentObject {
     id: number;
     objectType: 'Appointment';
     properties: {
         date: string;
         time: string;
-        type: 'Inbound' | 'Outbound';
+        type: AppointmentType;
         carrier: string;
         bolShipmentNo: string;
         customer: string;
         productType: string;
-        status: 'Scheduled' | 'Checked In' | 'Completed' | 'Late' | 'Missed';
+        status: AppointmentStatus;
         doorId: number | null;
         doorName: string | null;
         operatorId: number | null;
@@ -94,6 +114,8 @@ export interface AppointmentObject {
         checkInTime: string | null;
         checkOutTime: string | null;
         dwellTime: string | null;
+        pickerName: string | null;
+        verifierName: string | null;
     };
 }
 
@@ -120,9 +142,10 @@ export interface PitTaskObject {
     objectType: 'PitTask';
     properties: {
         appointmentId: number;
-        bolShipmentNo: string;
-        carrier: string;
-        doorName: string | null;
+        stage: string | null;
+        bolShipmentNo?: string;
+        carrier?: string;
+        doorName?: string | null;
         operatorName: string | null;
         status: 'Pending' | 'In Progress' | 'Completed';
         type: string;
@@ -161,6 +184,7 @@ export interface EmployeeObject {
         phoneNumber: string | null;
         cwid: string | null;
         notes: string | null;
+        siteId: string | null;
     };
 }
 

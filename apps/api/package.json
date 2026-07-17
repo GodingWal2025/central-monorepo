@@ -13,6 +13,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "scripts": {
+    "pg": "node scripts/pg-dev.mjs",
     "dev": "npm run build && func start",
     "build": "tsc",
     "test": "vitest run --passWithNoTests",
@@ -20,6 +21,7 @@
     "start": "func start"
   },
   "devDependencies": {
+    "embedded-postgres": "^18.4.0-beta.17",
     "prisma": "^5.22.0",
     "tsx": "^4.23.0"
   }

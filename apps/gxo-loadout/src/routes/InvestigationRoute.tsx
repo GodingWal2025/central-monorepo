@@ -1,14 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { listActiveSites } from '../services/sites';
+import { fetchActiveSites } from '../services/sites';
 import { getDeviceConfig } from '../lib/deviceConfig';
 import { dbListAllInspections } from '@gxo/semantic';
+import type { Site } from '@gxo/semantic';
 
 
 export function InvestigationRoute() {
   const deviceConfig = getDeviceConfig();
-  const sites = listActiveSites();
-  const [selectedSite, setSelectedSite] = useState(deviceConfig?.siteId || sites[0]?.id || 'all');
+  const [sites, setSites] = useState<Site[]>([]);
+  const [selectedSite, setSelectedSite] = useState(deviceConfig?.siteId || 'all');
+
+  useEffect(() => {
+    fetchActiveSites().then(setSites).catch(() => setSites([]));
+  }, []);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);

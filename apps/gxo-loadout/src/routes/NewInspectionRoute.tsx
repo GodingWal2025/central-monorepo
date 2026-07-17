@@ -4,9 +4,9 @@ import { getDeviceConfig } from '../lib/deviceConfig';
 import { InspectorPicker } from '@gxo/semantic';
 import { emptyInspection } from '@gxo/semantic';
 import { dbSaveInspection } from '@gxo/semantic';
-import { listActiveStagingLocations, type StagingLocation } from '../services/stagingLocations';
-import { listInspectorsForSite } from '@gxo/semantic';
-import type { InspectionType } from '@gxo/semantic';
+import type { StagingLocation } from '../services/stagingLocations';
+import { ontologyClient } from '@gxo/semantic';
+import type { InspectionType, AppointmentObject } from '@gxo/semantic';
 import { INSPECTION_TYPE_LABELS, INSPECTION_TYPE_DESCRIPTIONS } from '@gxo/semantic';
 
 function SearchableMultiSelect({
@@ -158,12 +158,59 @@ export function NewInspectionRoute() {
   const [creating, setCreating] = useState(false);
   const [returnsBrand, setReturnsBrand] = useState<'Dekalb' | 'Channel' | ''>('');
 
+  // Outbound: loads released by the clerk to "Picking & Verification" on the DockX board
+  const [readyLoads, setReadyLoads] = useState<AppointmentObject[]>([]);
+  const [loadingReady, setLoadingReady] = useState(true);
+  const [inspectorName, setInspectorName] = useState('');
+  const [startingId, setStartingId] = useState<number | null>(null);
+
   useEffect(() => {
-    if (config) {
-      setStagingLocations(listActiveStagingLocations(config.siteId));
-      setInspectors(listInspectorsForSite(config.siteId));
-    }
+    if (!config) return;
+    let cancelled = false;
+
+    // Staging locations come from the DockX staging map (shared ontology).
+    ontologyClient.getStagingLanes()
+      .then((lanes) => {
+        if (cancelled) return;
+        setStagingLocations(
+          lanes
+            .map((l) => ({ id: l.id, name: l.properties.name, siteId: config.siteId, active: true }))
+            .sort((a, b) => a.name.localeCompare(b.name))
+        );
+      })
+      .catch(() => { if (!cancelled) setStagingLocations([]); });
+
+    // Inspectors come from the Operations Hub employee roster (active employees).
+    ontologyClient.getEmployees()
+      .then((emps) => {
+        if (cancelled) return;
+        setInspectors(
+          emps
+            .filter((e) => e.properties.active)
+            .map((e) => ({ id: String(e.id), name: e.properties.fullName }))
+            .sort((a, b) => a.name.localeCompare(b.name))
+        );
+      })
+      .catch(() => { if (!cancelled) setInspectors([]); });
+
+    return () => { cancelled = true; };
   }, [config]);
+
+  const isOutbound = (params.type as InspectionType || 'outbound') === 'outbound';
+
+  useEffect(() => {
+    if (!config || !isOutbound) return;
+    let cancelled = false;
+    setLoadingReady(true);
+    ontologyClient.getAppointments('Picking & Verification')
+      .then(appts => {
+        if (cancelled) return;
+        setReadyLoads(appts.filter(a => a.properties.type === 'Outbound'));
+      })
+      .catch(() => { if (!cancelled) setReadyLoads([]); })
+      .finally(() => { if (!cancelled) setLoadingReady(false); });
+    return () => { cancelled = true; };
+  }, [config, isOutbound]);
 
   if (!config) {
     navigate('/setup');
@@ -224,7 +271,103 @@ export function NewInspectionRoute() {
     );
   }
 
-  // Outbound / Inbound / Returns workflow
+  // ─── Outbound: pick a released load and start with your name ──────────
+  const startFromLoad = async (appt: AppointmentObject) => {
+    if (!inspectorName.trim()) { alert('Select your name to start.'); return; }
+    setStartingId(appt.id);
+    try {
+      const inspection = {
+        ...emptyInspection(config.siteId, 'outbound'),
+        pickerName: appt.properties.pickerName || undefined,
+        startedBy: inspectorName,
+        currentInspector: inspectorName,
+        lastEditedBy: inspectorName,
+        stagingLocation: appt.properties.doorName || '',
+        sourceAppointmentId: appt.id,
+        sourceBol: String(appt.properties.bolShipmentNo || ''),
+      };
+      await dbSaveInspection(inspection);
+      navigate(`/inspection/${inspection.id}/capture-bol`);
+    } catch (e: any) {
+      console.error(e);
+      alert('Error starting inspection: ' + e.message);
+      setStartingId(null);
+    }
+  };
+
+  if (inspectionType === 'outbound') {
+    return (
+      <main style={{ maxWidth: 640 }}>
+        <div className="page-head">
+          <div>
+            <h1 className="page-head__title">Outbound <em>inspection</em></h1>
+            <div className="page-head__sub">Select a load released for picking &amp; verification</div>
+          </div>
+        </div>
+
+        <div className="field">
+          <div className="field__label">Your name (inspector)</div>
+          <InspectorPicker
+            siteId={config.siteId}
+            value={inspectorName}
+            placeholder="Select your name…"
+            onChange={setInspectorName}
+          />
+        </div>
+
+        <section className="section">
+          <div className="section__head">
+            <div>
+              <h2 className="section__title">Ready for <em>inspection</em></h2>
+              <span className="section__meta">{readyLoads.length} load{readyLoads.length === 1 ? '' : 's'} ready</span>
+            </div>
+          </div>
+
+          {loadingReady ? (
+            <div className="empty"><div className="empty__sub">Loading…</div></div>
+          ) : readyLoads.length === 0 ? (
+            <div className="empty">
+              <div className="empty__title">No loads ready</div>
+              <div className="empty__sub">
+                Loads appear here once a clerk moves them to <strong>Picking &amp; Verification</strong> on the dock board.
+              </div>
+            </div>
+          ) : (
+            <div>
+              {readyLoads.map((appt) => (
+                <div
+                  key={appt.id}
+                  className="workflow-card"
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}
+                >
+                  <div>
+                    <div className="workflow-card__title">#{appt.properties.bolShipmentNo}</div>
+                    <div className="workflow-card__sub">
+                      Carrier: {appt.properties.carrier} · Customer: {appt.properties.customer}
+                      {appt.properties.pickerName ? ` · Picker: ${appt.properties.pickerName}` : ''}
+                    </div>
+                  </div>
+                  <button
+                    className="btn btn--accent"
+                    disabled={!inspectorName.trim() || startingId === appt.id}
+                    onClick={() => startFromLoad(appt)}
+                  >
+                    {startingId === appt.id ? 'Starting…' : 'Start →'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <div className="flex gap-8 mt-24">
+          <Link to="/" className="btn btn--ghost">Cancel</Link>
+        </div>
+      </main>
+    );
+  }
+
+  // Inbound / Returns workflow
   const canStart = (inspectionType === 'returns' ? returnsBrand !== '' : pickerName !== '') && selectedInspectors.length > 0 && selectedLocations.length > 0;
 
   const start = async () => {
